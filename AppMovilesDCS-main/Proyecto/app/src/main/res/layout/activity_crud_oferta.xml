@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary"
+    tools:context=".OfertaCRUD">
+
+  <TextView
+      android:id="@+id/nameCRUDOFerta"
+      android:layout_width="315dp"
+      android:layout_height="116dp"
+      android:text="OFERTAS CRUD "
+      android:textColor="@color/white"
+      android:textSize="44sp"
+      android:textStyle="bold"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintVertical_bias="0.05" />
+
+  <ScrollView
+      android:layout_width="310dp"
+      android:layout_height="552dp"
+      android:layout_marginStart="20dp"
+      android:layout_marginLeft="20dp"
+      android:layout_marginTop="20dp"
+      android:layout_marginEnd="20dp"
+      android:layout_marginRight="20dp"
+      android:layout_marginBottom="20dp"
+      android:background="@color/background_primary"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/nameCRUDOFerta">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nameCRUDOFerta">
+
+      <Spinner
+          android:id="@+id/spinnerOfertaCRUD"
+          android:layout_width="match_parent"
+          android:layout_height="60dp"
+          android:layout_marginStart="10dp"
+          android:layout_marginLeft="10dp"
+          android:layout_marginTop="25dp"
+          android:layout_marginEnd="10dp"
+          android:layout_marginRight="10dp"
+          tools:ignore="SpeakableTextPresentCheck"
+          tools:layout_height="60dp" />
+
+      <EditText
+          android:id="@+id/txtid"
+          android:layout_width="match_parent"
+          android:layout_height="60dp"
+          android:layout_marginStart="10dp"
+          android:layout_marginLeft="10dp"
+          android:layout_marginTop="25dp"
+          android:layout_marginEnd="10dp"
+          android:layout_marginRight="10dp"
+          android:background="@color/white"
+          android:ems="10"
+          android:gravity="center|center_horizontal"
+          android:hint="ID Producto"
+          android:inputType="number"
+          android:textColorHint="@color/purple_500"
+          android:textSize="20sp" />
+
+      <EditText
+          android:id="@+id/txtnombreproducto"
+          android:layout_width="match_parent"
+          android:layout_height="60dp"
+          android:layout_marginStart="10dp"
+          android:layout_marginLeft="10dp"
+          android:layout_marginTop="25dp"
+          android:layout_marginEnd="10dp"
+          android:layout_marginRight="10dp"
+          android:background="@color/white"
+          android:ems="10"
+          android:gravity="center|center_horizontal"
+          android:hint="Nombre del Producto"
+          android:inputType="textPersonName"
+          android:textColorHint="@color/purple_500"
+          android:textSize="20sp" />
+
+      <EditText
+          android:id="@+id/txtmarca"
+          android:layout_width="match_parent"
+          android:layout_height="60dp"
+          android:layout_marginStart="10dp"
+          android:layout_marginLeft="10dp"
+          android:layout_marginTop="25dp"
+          android:layout_marginEnd="10dp"
+          android:layout_marginRight="10dp"
+          android:background="@color/white"
+          android:ems="10"
+          android:gravity="center_horizontal|center_vertical"
+          android:hint="Marca del Producto"
+          android:inputType="textPersonName"
+          android:textColorHint="@color/purple_500"
+          android:textSize="20sp" />
+
+      <EditText
+          android:id="@+id/txtprecio"
+          android:layout_width="match_parent"
+          android:layout_height="60dp"
+          android:layout_marginStart="10dp"
+          android:layout_marginLeft="10dp"
+          android:layout_marginTop="25dp"
+          android:layout_marginEnd="10dp"
+          android:layout_marginRight="10dp"
+          android:background="@color/white"
+          android:ems="10"
+          android:gravity="center_horizontal|center_vertical"
+          android:hint="Precio Oferta"
+          android:inputType="textPersonName"
+          android:textColorHint="@color/purple_500"
+          android:textSize="20sp" />
+
+      <EditText
+          android:id="@+id/txtidtienda"
+          android:layout_width="match_parent"
+          android:layout_height="60dp"
+          android:layout_marginStart="10dp"
+          android:layout_marginLeft="10dp"
+          android:layout_marginTop="25dp"
+          android:layout_marginEnd="10dp"
+          android:layout_marginRight="10dp"
+          android:background="@color/white"
+          android:ems="10"
+          android:gravity="center|center_horizontal"
+          android:hint="ID Tienda"
+          android:inputType="textPersonName"
+          android:textColorHint="@color/purple_500"
+          android:textSize="20sp" />
+
+      <Button
+          android:id="@+id/buttonOfertaCRUD"
+          android:layout_width="200dp"
+          android:layout_height="60dp"
+          android:layout_marginTop="25dp"
+          android:layout_marginBottom="25dp"
+          android:onClick="realizarAccion"
+          android:text="@string/enviar"
+          android:textColor="@color/font_gray"
+          app:backgroundTint="@color/purple_500" />
+
+      <Button
+          android:id="@+id/buttonListarOfertas"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Listar Ofertas" />
+
+    </LinearLayout>
+  </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
