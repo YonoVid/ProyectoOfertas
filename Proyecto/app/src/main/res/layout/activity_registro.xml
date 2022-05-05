@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary"
+    tools:context=".RegistroActivity">
+
+    <TextView
+        android:id="@+id/activityName"
+        android:layout_width="315dp"
+        android:layout_height="116dp"
+        android:text="@string/registrar_usuario"
+        android:textColor="@color/font_gray"
+        android:textSize="44sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        tools:textStyle="bold" />
+
+    <ScrollView
+        android:id="@+id/formScroll"
+        android:layout_width="310dp"
+        android:layout_height="552dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@color/background_primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/activityName">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/inputUsuarioName"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginRight="10dp"
+                android:background="@color/white"
+                android:ems="10"
+                android:gravity="center_horizontal"
+                android:hint="@string/nombre"
+                android:importantForAutofill="no"
+                android:inputType="textPersonName"
+                android:textColorHint="@color/purple_500"
+                android:textSize="20sp" />
+
+            <EditText
+                android:id="@+id/inputUsuarioPassword"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginRight="10dp"
+                android:background="@color/white"
+                android:ems="10"
+                android:gravity="center_horizontal"
+                android:hint="@string/contrase_a"
+                android:importantForAutofill="no"
+                android:inputType="textPassword"
+                android:textColorHint="@color/purple_500"
+                android:textSize="20sp" />
+
+            <EditText
+                android:id="@+id/inputConfirmPassword"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginRight="10dp"
+                android:background="@color/white"
+                android:ems="10"
+                android:gravity="center_horizontal"
+                android:hint="@string/confirmar_contrase_a"
+                android:importantForAutofill="no"
+                android:inputType="textPassword"
+                android:textColorHint="@color/purple_500"
+                android:textSize="20sp" />
+
+            <EditText
+                android:id="@+id/inputUsuarioEmail"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginRight="10dp"
+                android:background="@color/white"
+                android:ems="10"
+                android:gravity="center_horizontal"
+                android:hint="@string/correo_electr_nico"
+                android:importantForAutofill="no"
+                android:inputType="textEmailAddress"
+                android:textColorHint="@color/purple_500"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="25dp"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/inputUsuarioPhoneCode"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:background="@color/white"
+                    android:ems="10"
+                    android:gravity="center_horizontal"
+                    android:hint="@string/code"
+                    android:importantForAutofill="no"
+                    android:inputType="phone"
+                    android:textColorHint="@color/purple_500"
+                    android:textSize="20sp" />
+
+                <EditText
+                    android:id="@+id/inputUsuarioPhone"
+                    android:layout_width="219dp"
+                    android:layout_height="60dp"
+                    android:background="@color/white"
+                    android:ems="10"
+                    android:gravity="center_horizontal"
+                    android:hint="@string/telef_no"
+                    android:importantForAutofill="no"
+                    android:inputType="phone"
+                    android:textColorHint="@color/purple_500"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/checkBoxTermsRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:text="@string/terminos"
+                android:textColor="@color/purple_700"
+                android:textSize="20sp" />
+
+
+            <Button
+                android:id="@+id/buttonUsuarioCRUD"
+                android:layout_width="200dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginBottom="25dp"
+                android:onClick="registrarUsuario"
+                android:text="@string/enviar"
+                android:textColor="@color/font_gray"
+                app:backgroundTint="@color/purple_500"
+                tools:ignore="OnClick" />
+
+        </LinearLayout>
+    </ScrollView>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
