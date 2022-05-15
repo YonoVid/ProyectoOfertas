@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 
 class Soporte extends StatefulWidget {
   const Soporte({Key? key}) : super(key: key);
@@ -15,13 +13,6 @@ class _SoporteState extends State<Soporte> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("SOPORTE"),
-      ),
-      drawer: NavDrawer(
-        username: 'Nombre de usuario',
-        email: 'Correo',
-      ),
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -30,7 +21,7 @@ class _SoporteState extends State<Soporte> {
               Container(
                 height: 150.0,
                 width: 190.0,
-                padding: EdgeInsets.only(top: 40, bottom: 15),
+                padding: EdgeInsets.only(top: 40),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(200),
                 ),
@@ -71,33 +62,12 @@ class _SoporteState extends State<Soporte> {
               const Padding(
                 padding: EdgeInsets.all(10),
                 child: TextField(
-                  keyboardType: TextInputType.multiline,
-                  maxLines: 5,
+                  obscureText: true,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Descripción de la Consulta',
-                      hintText: 'Explique su problema'),
-                ),
-              ),
-              Container(
-                child: const Text(
-                  'Añadir capturas de pantalla',
-                  style: TextStyle(color: Colors.black, fontSize: 15),
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.only(top: 10, bottom: 200),
-                child: Center(
-                  child: CircleAvatar(
-                    backgroundColor: Colors.blue,
-                    radius: 25,
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: Icon(Icons.add),
-                      color: Colors.white,
-                      onPressed: () {},
-                    ),
-                  ),
+                      fillColor: Colors.white,
+                      labelText: 'Constraseña',
+                      hintText: 'Enter your secure password'),
                 ),
               ),
               Container(
@@ -111,9 +81,18 @@ class _SoporteState extends State<Soporte> {
                     Navigator.pop(context);
                   },
                   child: const Text(
-                    'Enviar',
+                    'Login',
                     style: TextStyle(color: Colors.white, fontSize: 25),
                   ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/register');
+                },
+                child: const Text(
+                  '¿Eres nuevo? Crea una cuenta',
+                  style: TextStyle(color: Colors.black, fontSize: 15),
                 ),
               ),
             ],
