@@ -56,7 +56,7 @@ class NavDrawer extends Drawer {
                 title: Text("Ofertas guardadas"),
                 leading: const Icon(Icons.favorite),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(context,);
                 },
               ),
               const Divider(
