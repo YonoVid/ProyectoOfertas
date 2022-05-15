@@ -51,7 +51,7 @@ class _LoginState extends State<Login> {
                         border: OutlineInputBorder(),
                         fillColor: Colors.white,
                         labelText: 'Constraseña',
-                        hintText: 'Enter your secure password'),
+                        hintText: 'Ingrese su contraseña'),
                   ),
                 ),
                 Row(

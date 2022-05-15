@@ -55,7 +55,18 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
             decoration: const BoxDecoration(color: Colors.yellow),
             child: Icon(Icons.emoji_food_beverage_rounded),
           ),
-          title: 'Prueba producto',
+          title: TextButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/producto');
+            },
+            child: const Text(
+              'Prueba Producto',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14),
+            ),
+          ),
           price: "\$500",
         ),
         ListOfertas(
@@ -63,7 +74,18 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
             decoration: const BoxDecoration(color: Colors.white),
             child: Icon(Icons.emoji_food_beverage_rounded),
           ),
-          title: 'Prueba producto',
+          title: TextButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/producto');
+            },
+            child: const Text(
+              'Prueba Producto',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14),
+            ),
+          ),
           price: "\$500",
         ),
         ListOfertas(
@@ -71,7 +93,18 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
             decoration: const BoxDecoration(color: Colors.white),
             child: Icon(Icons.emoji_food_beverage_rounded),
           ),
-          title: 'Prueba producto',
+          title: TextButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/producto');
+            },
+            child: const Text(
+              'Prueba Producto',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14),
+            ),
+          ),
           price: "\$500",
         ),
       ],
@@ -88,7 +121,7 @@ class ListOfertas extends StatelessWidget {
   }) : super(key: key);
 
   final Widget thumbnail;
-  final String title;
+  final Widget title;
   final String price;
 
   @override
@@ -119,7 +152,7 @@ class _OfertasDatos extends StatelessWidget {
     required this.price,
   }) : super(key: key);
 
-  final String name;
+  final Widget name;
   final String price;
 
   @override
@@ -128,11 +161,16 @@ class _OfertasDatos extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
       child: Column(
         children: [
-          Text(
-            name,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14.0,
+          TextButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/producto');
+            },
+            child: const Text(
+              'Prueba Producto',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14),
             ),
           ),
           Padding(
@@ -144,6 +182,7 @@ class _OfertasDatos extends StatelessWidget {
               ),
             ),
           ),
+
         ],
       ),
     );

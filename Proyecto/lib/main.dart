@@ -6,6 +6,7 @@ import 'package:ofertas_flutter/screens/register.dart';
 import 'package:ofertas_flutter/screens/ofertas.dart';
 import 'package:ofertas_flutter/screens/soporte.dart';
 import 'package:ofertas_flutter/screens/preguntas.dart';
+import 'package:ofertas_flutter/screens/producto.dart';
 
 void main() => runApp(MaterialApp(
     initialRoute: '/login',
@@ -16,6 +17,7 @@ void main() => runApp(MaterialApp(
       '/ofertas': (context) => Ofertas(),
       '/soporte': (context) => Soporte(),
       '/preguntas': (context) => Preguntas(),
+      '/producto': (context) => Producto(),
       '/example': (context) => Example(),
     },
     theme: ThemeData(
