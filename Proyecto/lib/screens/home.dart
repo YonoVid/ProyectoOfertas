@@ -36,10 +36,10 @@ class _HomeState extends State<Home> {
       backgroundColor: Colors.brown[200],
       drawer: NavDrawer(username: 'Nombre de usuario',email: 'Correo',),
       floatingActionButton: FloatingActionButton(
-        child: Text("CLICK"),
+        child: Icon(Icons.add),
         backgroundColor: Colors.indigo[500],
         onPressed: () {
-          Navigator.pushNamed(context, '/example');
+          Navigator.pushNamed(context, '/agregar_oferta');
         },
       ),
     );

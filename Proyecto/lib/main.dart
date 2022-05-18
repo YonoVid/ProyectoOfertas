@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ofertas_flutter/screens/home.dart';
 import 'package:ofertas_flutter/screens/login.dart';
-import 'package:ofertas_flutter/screens/example.dart';
+import 'package:ofertas_flutter/screens/agregar_oferta.dart';
 import 'package:ofertas_flutter/screens/register.dart';
 import 'package:ofertas_flutter/screens/ofertas.dart';
 import 'package:ofertas_flutter/screens/soporte.dart';
@@ -18,7 +18,7 @@ void main() => runApp(MaterialApp(
       '/soporte': (context) => Soporte(),
       '/preguntas': (context) => Preguntas(),
       '/opciones': (context) => Opciones(),
-      '/example': (context) => Example(),
+      '/agregar_oferta': (context) => AgregarOferta(),
     },
     theme: ThemeData(
       colorScheme: ColorScheme.fromSwatch(
