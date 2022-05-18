@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
+import 'package:ofertas_flutter/widgets/formbase.dart';
 
 class Soporte extends StatefulWidget {
   const Soporte({Key? key}) : super(key: key);
@@ -17,35 +17,36 @@ class _SoporteState extends State<Soporte> {
     return Scaffold(
       appBar: AppBar(
         title: Text("SOPORTE"),
-      ),
-      drawer: NavDrawer(
-        username: 'Nombre de usuario',
-        email: 'Correo',
+        centerTitle: true,
+        backgroundColor: Colors.indigo[500],
+        elevation: 0.0,
       ),
       body: Center(
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: FormBase(
             children: [
               Container(
                 height: 150.0,
-                width: 190.0,
-                padding: EdgeInsets.only(top: 40, bottom: 15),
+                width: 150.0,
                 decoration: BoxDecoration(
+                  color: Colors.brown[100],
                   borderRadius: BorderRadius.circular(200),
                 ),
-                child: Center(
-                  child: Image.asset('assets/logoTemp.png'),
-                ),
+                child: const FittedBox(
+                    fit: BoxFit.cover,
+                    child: Icon(
+                      Icons.support_rounded,
+                    )),
               ),
               Container(
                 color: Colors.brown[50],
+                margin: EdgeInsets.symmetric(vertical: 15.0),
                 child: DropdownButton<String>(
                   value: dropdownValue,
                   icon: const Icon(Icons.arrow_downward),
                   dropdownColor: Colors.brown[50],
                   elevation: 16,
-                  style: const TextStyle(color: Colors.indigo),
+                  style: const TextStyle(fontSize: 16.0, color: Colors.indigo),
                   underline: Container(
                     height: 2,
                     color: Colors.indigo,
@@ -55,12 +56,13 @@ class _SoporteState extends State<Soporte> {
                       dropdownValue = newValue!;
                     });
                   },
-                  items: <String>['Tipo de consulta',
-                                  'Ingreso de ofertas',
-                                  'Control de tienda',
-                                  'Funcionamiento de la aplicación',
-                                  'Otro',]
-                      .map<DropdownMenuItem<String>>((String value) {
+                  items: <String>[
+                    'Tipo de consulta',
+                    'Ingreso de ofertas',
+                    'Control de tienda',
+                    'Funcionamiento de la aplicación',
+                    'Otro',
+                  ].map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),
@@ -68,50 +70,34 @@ class _SoporteState extends State<Soporte> {
                   }).toList(),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.all(10),
-                child: TextField(
-                  keyboardType: TextInputType.multiline,
-                  maxLines: 5,
+              Container(
+                height: MediaQuery.of(context).size.height / 3,
+                width: 250,
+                child: const TextField(
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Descripción de la Consulta',
-                      hintText: 'Explique su problema'),
-                ),
-              ),
-              Container(
-                child: const Text(
-                  'Añadir capturas de pantalla',
-                  style: TextStyle(color: Colors.black, fontSize: 15),
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.only(top: 10, bottom: 200),
-                child: Center(
-                  child: CircleAvatar(
-                    backgroundColor: Colors.blue,
-                    radius: 25,
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: Icon(Icons.add),
-                      color: Colors.white,
-                      onPressed: () {},
-                    ),
-                  ),
+                      fillColor: Colors.white,
+                      labelText: 'Comentarios',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                      hintText: 'Describe tu problema'),
+                  textInputAction: TextInputAction.newline,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  minLines: 10,
                 ),
               ),
               Container(
                 height: 50,
                 width: 250,
                 decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: Colors.indigo[600],
                     borderRadius: BorderRadius.circular(20)),
                 child: TextButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
                   child: const Text(
-                    'Enviar',
+                    'Enviar consulta',
                     style: TextStyle(color: Colors.white, fontSize: 25),
                   ),
                 ),
@@ -119,6 +105,10 @@ class _SoporteState extends State<Soporte> {
             ],
           ),
         ),
+      ),
+      drawer: NavDrawer(
+        username: 'Nombre de usuario',
+        email: 'Correo',
       ),
     );
   }

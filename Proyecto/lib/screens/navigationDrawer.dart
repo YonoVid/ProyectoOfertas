@@ -15,6 +15,9 @@ class NavDrawer extends Drawer {
   @override
   Widget build(BuildContext context) {
     final drawerHeader = UserAccountsDrawerHeader(
+      decoration: BoxDecoration(
+        color: Colors.indigo[600]
+      ),
       accountName: Text(
         username,
       ),
@@ -28,7 +31,7 @@ class NavDrawer extends Drawer {
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.85,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0.0,0.0,125.0,0.0),
+        padding: const EdgeInsets.fromLTRB(0.0,0.0,100.0,0.0),
         child: Container(
           color: Colors.brown[50],
           child: ListView(
@@ -78,6 +81,13 @@ class NavDrawer extends Drawer {
                 leading: const Icon(Icons.question_answer_rounded),
                 onTap: () {
                   Navigator.pushNamedAndRemoveUntil(context, '/preguntas', (Route<dynamic> route) => route.isFirst );
+                },
+              ),
+              ListTile(
+                title: Text("Opciones"),
+                leading: const Icon(Icons.settings_rounded),
+                onTap: () {
+                  Navigator.pushNamedAndRemoveUntil(context, '/opciones', (Route<dynamic> route) => route.isFirst );
                 },
               ),
               ListTile(

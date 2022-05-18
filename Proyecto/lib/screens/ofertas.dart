@@ -51,61 +51,22 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
     return ListView(
       children: [
         ListOfertas(
-          thumbnail: Container(
-            decoration: const BoxDecoration(color: Colors.yellow),
-            child: Icon(Icons.emoji_food_beverage_rounded),
-          ),
-          title: TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/producto');
-            },
-            child: const Text(
-              'Prueba Producto',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14),
-            ),
-          ),
+          thumbnail: Container(),
+          title: 'Prueba producto',
           price: "\$500",
+          location: "Avenida la macarena",
         ),
         ListOfertas(
-          thumbnail: Container(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Icon(Icons.emoji_food_beverage_rounded),
-          ),
-          title: TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/producto');
-            },
-            child: const Text(
-              'Prueba Producto',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14),
-            ),
-          ),
+          thumbnail: Container(),
+          title: 'Prueba producto',
           price: "\$500",
+          location: "Avenida la macarena",
         ),
         ListOfertas(
-          thumbnail: Container(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Icon(Icons.emoji_food_beverage_rounded),
-          ),
-          title: TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/producto');
-            },
-            child: const Text(
-              'Prueba Producto',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14),
-            ),
-          ),
+          thumbnail: Container(),
+          title: 'Prueba producto',
           price: "\$500",
+          location: "Avenida la macarena",
         ),
       ],
     );
@@ -118,28 +79,45 @@ class ListOfertas extends StatelessWidget {
     required this.thumbnail,
     required this.title,
     required this.price,
+    required this.location,
   }) : super(key: key);
 
   final Widget thumbnail;
-  final Widget title;
+  final String title;
   final String price;
+  final String location;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: thumbnail,
-          ),
-          Expanded(
-            flex: 3,
-            child: _OfertasDatos(name: title, price: price),
-          ),
-        ],
+      child: Container(
+        color: Colors.brown[100],
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Container(
+                decoration: const BoxDecoration(color: Colors.brown),
+                child: Icon(Icons.emoji_food_beverage_rounded),
+                height: MediaQuery.of(context).size.height/10,
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: _OfertasDatos(name: title, price: price, location: location,),
+            ),
+            Expanded(
+              flex: 1,
+              child: IconButton(
+                  color: Colors.grey[500],
+                  icon: Icon(Icons.favorite_rounded),
+                  onPressed: (){},
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -149,40 +127,43 @@ class _OfertasDatos extends StatelessWidget {
   const _OfertasDatos({
     Key? key,
     required this.name,
+    required this.location,
     required this.price,
   }) : super(key: key);
 
-  final Widget name;
+  final String name;
   final String price;
+  final String location;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
+      padding: const EdgeInsets.fromLTRB(1.0, 4.0, 0.0, 0.0),
       child: Column(
         children: [
-          TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/producto');
-            },
-            child: const Text(
-              'Prueba Producto',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14),
+          Text(
+            name,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 14.0,
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 2.0),
+            padding: EdgeInsets.symmetric(horizontal: 1.0, vertical: 5.0),
             child: Text(
-              price,
+              location,
               style: TextStyle(
                 fontSize: 10.0,
               ),
             ),
           ),
-
+          Text(
+            price,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14.0,
+            ),
+          ),
         ],
       ),
     );

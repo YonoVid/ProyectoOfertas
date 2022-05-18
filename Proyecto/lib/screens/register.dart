@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:ofertas_flutter/widgets/formbase.dart';
 import 'package:ofertas_flutter/widgets/labelcheckbox.dart';
 
 class Register extends StatefulWidget {
@@ -7,7 +8,6 @@ class Register extends StatefulWidget {
 
   @override
   State<Register> createState() => _RegisterState();
-
 }
 
 class _RegisterState extends State<Register> {
@@ -20,19 +20,16 @@ class _RegisterState extends State<Register> {
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: FormBase(
             children: [
               Container(
                 height: 150.0,
-                width: 190.0,
-                padding: EdgeInsets.only(top: 40),
+                width: 150.0,
                 decoration: BoxDecoration(
+                  color: Colors.brown[100],
                   borderRadius: BorderRadius.circular(200),
                 ),
-                child: Center(
-                  child: Image.asset('assets/logoTemp.png'),
-                ),
+                child: Center(child: const FlutterLogo(size: 100.0)),
               ),
               const Padding(
                 padding: EdgeInsets.all(10),
@@ -77,7 +74,8 @@ class _RegisterState extends State<Register> {
                 height: 50,
                 width: 250,
                 decoration: BoxDecoration(
-                    color: Colors.blue, borderRadius: BorderRadius.circular(20)),
+                    color: Colors.indigo[800],
+                    borderRadius: BorderRadius.circular(20)),
                 child: TextButton(
                   onPressed: () {
                     Navigator.pop(context);
