@@ -55,7 +55,7 @@ class _LoginState extends State<Login> {
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       fillColor: Colors.white,
-                      labelText: 'Constraseña',
+                      labelText: 'Contraseña',
                       hintText: 'Enter your secure password'),
                 ),
               ),
@@ -64,7 +64,7 @@ class _LoginState extends State<Login> {
                 children: [
                   Expanded(
                     child: LabeledCheckbox(
-                      label: 'Recuerdame',
+                      label: 'Recuérdame',
                       padding: const EdgeInsets.symmetric(
                         vertical: 10.0,
                         horizontal: 5.0,

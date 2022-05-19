@@ -15,6 +15,7 @@ class Preguntas extends StatelessWidget {
         children: [
           PreguntaCard(question: '¿Te gustan las galletas?', answer: 'No'),
           PreguntaCard(question: '¿Te gustan las marraquetas?', answer: 'Sipi'),
+          PreguntaCard(question: '¿Son reales estos descuentos tan hermosos?', answer: 'Asies'),
         ],
       ),
       drawer: NavDrawer(
