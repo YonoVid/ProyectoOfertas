@@ -94,10 +94,25 @@
     "featureType": "road.local",
     "stylers": [
       {
-        "color": "#efebe9"
-      },
-      {
         "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#efebe9"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "elementType": "labels.icon",
+    "stylers": [
+      {
+        "visibility": "off"
       }
     ]
   },
