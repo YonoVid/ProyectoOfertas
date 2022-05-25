@@ -16,7 +16,16 @@ class _HomeState extends State<Home> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    _setStyle(controller);
   }
+
+  void _setStyle(GoogleMapController controller) async {
+    String value = await DefaultAssetBundle.of(context)
+        .loadString('assets/google_maps_style.json');
+    controller.setMapStyle(value);
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -4,6 +4,8 @@ import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 class Ofertas extends StatefulWidget {
   const Ofertas({Key? key}) : super(key: key);
 
+  static final _OfertasTabKey = new GlobalKey<_OfertasState>();
+
   @override
   State<Ofertas> createState() => _OfertasState();
 }

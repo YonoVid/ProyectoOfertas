@@ -9,8 +9,15 @@ class NavDrawer extends Drawer {
     required this.email,
   }) : super(key: key);
 
+
   final String username;
   final String email;
+
+  void openNamed(context, String name)
+  {
+    Navigator.popUntil(context, ModalRoute.withName("/"));
+    Navigator.pushNamed(context, name);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +50,8 @@ class NavDrawer extends Drawer {
                 ),
                 leading: const Icon(Icons.location_on_rounded),
                 onTap: () {
-                  Navigator.pushNamedAndRemoveUntil(context, '/', (Route<dynamic> route) => route.isFirst );
+                  Navigator.pop(context);
+                  Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst );
                 },
               ),
               ListTile(
@@ -52,14 +60,14 @@ class NavDrawer extends Drawer {
                 ),
                 leading: const Icon(Icons.monetization_on_rounded),
                 onTap: () {
-                  Navigator.pushReplacementNamed(context, '/ofertas');
+                  openNamed(context, "/ofertas");
                 },
               ),
               ListTile(
                 title: Text("Ofertas guardadas"),
                 leading: const Icon(Icons.favorite),
                 onTap: () {
-                  Navigator.pop(context);
+                  openNamed(context, "/ofertas");
                 },
               ),
               const Divider(
@@ -73,28 +81,28 @@ class NavDrawer extends Drawer {
                 title: Text("Soporte"),
                 leading: const Icon(Icons.support_rounded),
                 onTap: () {
-                  Navigator.pushNamedAndRemoveUntil(context, '/soporte', (Route<dynamic> route) => route.isFirst );
+                  openNamed(context, '/soporte');
                 },
               ),
               ListTile(
                 title: Text("Preguntas frecuentes"),
                 leading: const Icon(Icons.question_answer_rounded),
                 onTap: () {
-                  Navigator.pushNamedAndRemoveUntil(context, '/preguntas', (Route<dynamic> route) => route.isFirst );
+                  openNamed(context, '/preguntas');
                 },
               ),
               ListTile(
                 title: Text("Opciones"),
                 leading: const Icon(Icons.settings_rounded),
                 onTap: () {
-                  Navigator.pushNamedAndRemoveUntil(context, '/opciones', (Route<dynamic> route) => route.isFirst );
+                  openNamed(context, '/opciones');
                 },
               ),
               ListTile(
                 title: Text("Cerrar sesión"),
                 leading: const Icon(Icons.person_pin),
                 onTap: () {
-                  Navigator.pushNamedAndRemoveUntil(context, '/login', (Route<dynamic> route) => route.isFirst );
+                  Navigator.pushNamedAndRemoveUntil(context, '/login', ModalRoute.withName("/"));
                 },
               ),
             ],
