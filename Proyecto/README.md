@@ -24,7 +24,7 @@ herramientas necesarias para su funcionamiento.
 1. [Descarga la herramienta](https://firebase.google.com/docs/cli#setup_update_cli)
 2. Ingresa con el correo del equipo (lostresalgoingenioso@gmail.com) utilizando el commando:
 ```
-Firebase login
+firebase login
 ```
 3. Instala la herramienta FlutterFire CLI
 ```
