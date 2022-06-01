@@ -64,4 +64,4 @@ carpeta_del_proyecto] flutter run
 ```
 
 Como referencia puedes acceder a la [documentación official de firebase
-para contectarse con flutter] ([https://flutter.dev/docs](https://firebase.google.com/docs/flutter/setup?platform=android)
+para contectarse con flutter](https://firebase.google.com/docs/flutter/setup?platform=android)
