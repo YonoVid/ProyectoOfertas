@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'package:ofertas_flutter/app_state.dart';
 import 'package:ofertas_flutter/screens/home.dart';
 import 'package:ofertas_flutter/screens/login.dart';
 import 'package:ofertas_flutter/screens/agregar_oferta.dart';
@@ -8,9 +11,28 @@ import 'package:ofertas_flutter/screens/soporte.dart';
 import 'package:ofertas_flutter/screens/preguntas.dart';
 import 'package:ofertas_flutter/screens/opciones.dart';
 
-void main() => runApp(MaterialApp(
-    initialRoute: '/login',
-    routes: {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AppState(),
+      builder: (context, _) => OfertasFlutter(),
+    ),
+  );
+}
+class OfertasFlutter extends StatelessWidget {
+  @override
+    Widget build(BuildContext context) => MaterialApp(
+  initialRoute: '/login',
+  routes:
+   {
       '/': (context) => const Home(),
       '/login': (context) => Login(),
       '/register': (context) => Register(),
@@ -21,10 +43,10 @@ void main() => runApp(MaterialApp(
       '/agregar_oferta': (context) => AgregarOferta(),
     },
     theme: ThemeData(
-      colorScheme: ColorScheme.fromSwatch(
-        primarySwatch: Colors.indigo
-      ),
-      canvasColor: Colors.brown[200]
+        colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: Colors.indigo
+        ),
+        canvasColor: Colors.brown[200]
     ),
     /*
     theme: ThemeData(
@@ -39,5 +61,5 @@ void main() => runApp(MaterialApp(
       ),
     ),
      */
-));
-
+  );
+}

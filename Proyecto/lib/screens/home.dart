@@ -1,6 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore, GeoPoint, QuerySnapshot;
+import 'package:ofertas_flutter/app_state.dart';
+//import 'package:firebase_core/firebase_auth.dart';
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -11,6 +17,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late GoogleMapController mapController;
+
 
   final LatLng _center = const LatLng(-33.45694, -70.64827);
 
@@ -25,9 +32,9 @@ class _HomeState extends State<Home> {
     controller.setMapStyle(value);
   }
 
-
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text("OFERTAS"),
@@ -35,15 +42,29 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.indigo[500],
         elevation: 0.0,
       ),
-      body: GoogleMap(
+      body: Consumer<AppState>(
+        builder: (context, appState, _) => GoogleMap(
+          onMapCreated: _onMapCreated,
+          initialCameraPosition: CameraPosition(
+            target: _center,
+            zoom: 11.0,
+          ),
+          markers: appState.getMarkers(),
+        ),
+      ),
+      /*GoogleMap(
         onMapCreated: _onMapCreated,
         initialCameraPosition: CameraPosition(
           target: _center,
           zoom: 11.0,
         ),
-      ),
+        markers: Set<Marker>.of(_markers),
+      ),*/
       backgroundColor: Colors.brown[200],
-      drawer: NavDrawer(username: 'Nombre de usuario',email: 'Correo',),
+      drawer: NavDrawer(
+        username: 'Nombre de usuario',
+        email: 'Correo',
+      ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         backgroundColor: Colors.indigo[500],
