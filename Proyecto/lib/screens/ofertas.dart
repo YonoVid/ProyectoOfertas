@@ -1,5 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
+import 'package:provider/provider.dart';
+
+import '../app_state.dart';
 
 class Ofertas extends StatefulWidget {
   const Ofertas({Key? key}) : super(key: key);
@@ -50,27 +55,19 @@ class OfertasBusqueda extends StatefulWidget {
 class _OfertasBusquedaState extends State<OfertasBusqueda> {
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        ListOfertas(
-          thumbnail: Container(),
-          title: 'Prueba producto',
-          price: "\$500",
-          location: "Avenida la macarena",
+    return Consumer<AppState>(
+      builder: (context, appState, _) =>
+        ListView(
+          children: [
+            for(var data in appState.locations)
+                ListOfertas(
+                  thumbnail: Container(),
+                  title: data.name,
+                  price: "\$" + data.price.toString(),
+                  location: data.location.toString(),
+                ),
+          ],
         ),
-        ListOfertas(
-          thumbnail: Container(),
-          title: 'Prueba producto',
-          price: "\$500",
-          location: "Avenida la macarena",
-        ),
-        ListOfertas(
-          thumbnail: Container(),
-          title: 'Prueba producto',
-          price: "\$500",
-          location: "Avenida la macarena",
-        ),
-      ],
     );
   }
 }
@@ -103,7 +100,7 @@ class ListOfertas extends StatelessWidget {
               child: Container(
                 decoration: const BoxDecoration(color: Colors.brown),
                 child: Icon(Icons.emoji_food_beverage_rounded),
-                height: MediaQuery.of(context).size.height/10,
+                height: 80.0,
               ),
             ),
             Expanded(
@@ -140,11 +137,12 @@ class _OfertasDatos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(1.0, 4.0, 0.0, 0.0),
+      padding: const EdgeInsets.fromLTRB(5.0, 5.0, 0.0, 10.0),
       child: Column(
         children: [
           Text(
             name,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 14.0,

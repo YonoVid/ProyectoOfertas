@@ -39,11 +39,12 @@ class PreguntaCard extends StatelessWidget {
       margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
       color: Colors.brown[50],
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
         child: Column(
           children: [
             Text(
               question,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 24.0,
                 fontWeight: FontWeight.bold,

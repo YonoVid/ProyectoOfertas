@@ -52,14 +52,6 @@ class _HomeState extends State<Home> {
           markers: appState.getMarkers(),
         ),
       ),
-      /*GoogleMap(
-        onMapCreated: _onMapCreated,
-        initialCameraPosition: CameraPosition(
-          target: _center,
-          zoom: 11.0,
-        ),
-        markers: Set<Marker>.of(_markers),
-      ),*/
       backgroundColor: Colors.brown[200],
       drawer: NavDrawer(
         username: 'Nombre de usuario',

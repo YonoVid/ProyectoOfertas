@@ -5,7 +5,7 @@ import 'package:ofertas_flutter/app_state.dart';
 import 'package:ofertas_flutter/screens/home.dart';
 import 'package:ofertas_flutter/screens/login.dart';
 import 'package:ofertas_flutter/screens/agregar_oferta.dart';
-import 'package:ofertas_flutter/screens/register.dart';
+import 'package:ofertas_flutter/screens/registro.dart';
 import 'package:ofertas_flutter/screens/ofertas.dart';
 import 'package:ofertas_flutter/screens/soporte.dart';
 import 'package:ofertas_flutter/screens/preguntas.dart';
@@ -19,7 +19,6 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppState(),
@@ -45,6 +44,12 @@ class OfertasFlutter extends StatelessWidget {
     theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(
             primarySwatch: Colors.indigo
+        ),
+        buttonTheme: ButtonThemeData(
+          buttonColor: Colors.indigo[600], // Background color (orange in my case).
+          textTheme: ButtonTextTheme.accent,
+          colorScheme:
+          Theme.of(context).colorScheme.copyWith(secondary: Colors.white), // Text color
         ),
         canvasColor: Colors.brown[200]
     ),
