@@ -59,12 +59,12 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
       builder: (context, appState, _) =>
         ListView(
           children: [
-            for(var data in appState.locations)
+            for(var data in appState.locals.values)
                 ListOfertas(
                   thumbnail: Container(),
                   title: data.name,
-                  price: "\$" + data.price.toString(),
-                  location: data.location.toString(),
+                  price: "\$",
+                  location: "null"//data.location.toString(),
                 ),
           ],
         ),

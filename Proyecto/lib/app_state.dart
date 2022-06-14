@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, FirebaseAut
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:ofertas_flutter/screens/home.dart';
 
 import 'firebase_options.dart';
 
@@ -17,8 +18,8 @@ class AppState extends ChangeNotifier{
   String? get email => _email;
 
   StreamSubscription<QuerySnapshot>? _markersSubscription;
-  List<Offer> _locations = <Offer>[];
-  List<Offer> get locations => _locations;
+  Map<String, Local> _locals = <String, Local>{};
+  Map<String, Local> get locals => _locals;
 
   AppState(){
     init();
@@ -40,19 +41,29 @@ class AppState extends ChangeNotifier{
       notifyListeners();
     });
     _markersSubscription = FirebaseFirestore.instance
-        .collection('Oferta')
+        .collection('Local')
         .snapshots()
         .listen((snapshot) {
-      _locations = [];
+      _locals.clear();
       for (final document in snapshot.docs) {
         print("Getting data from Cloud");
         GeoPoint geoPoint = document.data()['ubicacion'];
-        _locations.add(Offer(
+        List<Offer> offers= <Offer>[];
+
+        /*for(final offer in document.reference.collection('Oferta'))
+          {
+            offers.add(Offer(
+              id: offer.id,
+              name: offer.data()['nombre'] as String,
+              price: offer.data()['precio']
+            ));
+          }*/
+        _locals[document.id]=Local(
           id: document.id,
           name: document.data()['nombre'] as String,
-          price: document.data()['precio'],
           location: LatLng(geoPoint.latitude, geoPoint.longitude),
-        ));
+          offers: document.reference.collection('Oferta'),
+        );
       }
       notifyListeners();
     });
@@ -121,29 +132,62 @@ class AppState extends ChangeNotifier{
     return _loginState == ApplicationLoginState.loggedIn;
   }
 
-  Set<Marker> getMarkers(){
+  Set<Marker> getMarkers(Function function){
     Set<Marker> _markers = <Marker>{};
-    for (final document in _locations) {
-      print("Getting data from Cloud | " + document.id);
+    _locals.forEach((key, value) {
+      print("Getting data from Cloud | " + value.id);
       _markers.add(Marker(
-          markerId: MarkerId(document.id),
-          position: document.location,
+          markerId: MarkerId(value.id),
+          position: value.location,
           onTap: (){
-            print(
-                document.toString());
+            function(value);
           },
-          infoWindow: InfoWindow(title: document.name)));
-    }
+      ));
+    });
     return _markers;
+  }
+
+  Future<Set<Offer>> getOffers(String id) async{
+    List data = [];
+    Set<Offer> _offers = <Offer>{};
+    try{
+      await _locals[id]?.offers.get().then((snapshot) =>
+      {
+        snapshot.docs.forEach((document) {
+          data.add(document
+
+      );})});
+      for(var document in data)
+        {
+          _offers.add(Offer(
+            id:document.id,
+            name: document.data()['nombre'] as String,
+            price: document.data()['precio'],
+          ));
+          print(document.id);
+        }
+    }
+    catch(e){
+      print("ERROR: GETTING DATA FROM ID " + e.toString());
+    }
+
+    return _offers;
   }
 }
 
+class Local{
+  Local({required this.id, required this.name, required this.location, required this.offers});
+  final String id;
+  final String name;
+  final LatLng location;
+  final CollectionReference offers;
+}
+
 class Offer{
-  Offer({required this.id, required this.name, required this.price, required this.location});
+  Offer({required this.id, required this.name, required this.price});
   final String id;
   final String name;
   final int price;
-  final LatLng location;
 }
 
 enum ApplicationLoginState {
