@@ -34,7 +34,7 @@ class _ReporteState extends State<Reporte> {
   }
   @override
   Widget build(BuildContext context) {
-    Offer? offer = Provider.of<AppState>(context, listen: false).offer;
+    Offer? offer = Provider.of<AppState>(context, listen: false).offerSelected;
     return Scaffold(
       appBar: AppBar(
         title: Text("REPORTAR"),

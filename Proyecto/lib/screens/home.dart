@@ -40,15 +40,13 @@ class _HomeState extends State<Home> {
     print(local.id + "|" + local.name + "|" + local.location.toString());
     mapController
         .animateCamera(CameraUpdate.newLatLngZoom(local.location, 14.0));
-    if (local.id != _keyDataOverlay.currentState!._id) {
-      Set<Offer> offers = await Provider.of<AppState>(context, listen: false)
-          .getOffersOf(local.id);
-      // Declaring and Initializing OverlayState and
-      // OverlayEntry objects
-      _keyDataOverlay.currentState!.loadData(local, offers);
-    } else {
-      _keyDataOverlay.currentState!.show();
+    print(local.id != Provider.of<AppState>(context, listen: false).local?.id);
+    if(local.id != Provider.of<AppState>(context, listen: false).local?.id){
+
+      Provider.of<AppState>(context, listen: false).setLocal(local);
+      await Provider.of<AppState>(context, listen: false).getOffersOf(local.id);
     }
+    _keyDataOverlay.currentState!.show();
   }
 
   void _hideOverlay() async {
@@ -110,21 +108,6 @@ class _DataOverlayState extends State<DataOverlay> {
   final _scrollController = ScrollController();
   bool _visibleState = false;
   bool _visibleExtra = false;
-  String _id = "";
-  String _name = "";
-  LatLng _location = const LatLng(0.0, 0.0);
-  Set<Offer> _offers = {};
-
-  void loadData(Local local, Set<Offer> offers) {
-    setState(() {
-      _id = local.id;
-      _name = local.name;
-      _location = local.location;
-      _offers = offers;
-      _visibleState = true;
-    });
-    Provider.of<AppState>(context, listen: false).setLocal(local);
-  }
 
   void hide() {
     if (_visibleState) {
@@ -160,6 +143,8 @@ class _DataOverlayState extends State<DataOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    Local? _local = Provider.of<AppState>(context, listen: false)
+        .local;
     return Visibility(
       visible: _visibleState,
       child: Positioned(
@@ -176,15 +161,17 @@ class _DataOverlayState extends State<DataOverlay> {
               margin: EdgeInsets.symmetric(vertical: 0.0, horizontal: 5.0),
               height: MediaQuery.of(context).size.height * 0.25,
               color: Colors.indigo[500],
-              child: ListView(
-                controller: _scrollController,
-                padding: EdgeInsets.zero,
-                children: [
-                  for (var data in _offers)
-                    DataOffer(
-                      offer: data,
-                    ),
-                ],
+              child: Consumer<AppState>(
+                builder: (context, appState, _) => ListView(
+                  controller: _scrollController,
+                  padding: EdgeInsets.zero,
+                  children: [
+                    for (var data in appState.offersSelected)
+                      DataOffer(
+                        offer: data,
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -199,7 +186,7 @@ class _DataOverlayState extends State<DataOverlay> {
                   padding: const EdgeInsets.symmetric(
                       vertical: 10.0, horizontal: 10.0),
                   child: Text(
-                    _name,
+                    (_local?.name == null)?"":_local?.name as String,
                     textAlign: TextAlign.left,
                     style: TextStyle(
                       fontSize: 18.0,
@@ -299,7 +286,7 @@ class DataOffer extends StatelessWidget {
                 Expanded(
                     child: IconButton(
                   onPressed: () {
-                    Provider.of<AppState>(context, listen: false).offer = offer;
+                    Provider.of<AppState>(context, listen: false).offerSelected = offer;
                     Navigator.pushNamed(context, "/reporte");
                   },
                   icon: Icon(Icons.error_rounded),

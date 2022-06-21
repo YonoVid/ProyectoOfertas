@@ -100,7 +100,7 @@ class _RegisterState extends State<Register> {
                     if (_inputName.text != "" && _inputEmail.text != "" && _inputPassword.text != "" && _inputConfirmpassword.text != "") {
                       //if (_inputPassword == _inputConfirmpassword) {
                         if (await Provider.of<AppState>(context, listen: false)
-                            .registerAccount(_inputName.text, _inputEmail.text, _inputPassword.text)) {
+                            .registerAccount(_inputEmail.text, _inputName.text, _inputPassword.text, (e) { })) {
                           Navigator.pop(context);
                           msg("¡El usuario ha sido registrado exitosamente!, Ya puedes iniciar sesión");
                         } else {

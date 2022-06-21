@@ -24,18 +24,20 @@ class NavDrawer extends Drawer {
 
   @override
   Widget build(BuildContext context) {
-    final drawerHeader = UserAccountsDrawerHeader(
-      decoration: BoxDecoration(
-        color: Colors.indigo[600]
-      ),
-      accountName: Text(
-        username,
-      ),
-      accountEmail: Text(
-        email,
-      ),
-      currentAccountPicture: const CircleAvatar(
-        child: FlutterLogo(size: 42.0),
+    final drawerHeader = Consumer<AppState>(
+      builder: (context, appState, _) => UserAccountsDrawerHeader(
+        decoration: BoxDecoration(
+            color: Colors.indigo[600]
+        ),
+        accountName: Text(
+          appState.user.name,
+        ),
+        accountEmail: Text(
+          appState.user.email,
+        ),
+        currentAccountPicture: const CircleAvatar(
+          child: FlutterLogo(size: 42.0),
+        ),
       ),
     );
     return SizedBox(
