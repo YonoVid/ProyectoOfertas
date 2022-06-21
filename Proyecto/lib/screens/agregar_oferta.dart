@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:ofertas_flutter/widgets/formbase.dart';
@@ -13,7 +14,18 @@ class AgregarOferta extends StatefulWidget {
 }
 
 class _AgregarOfertaState extends State<AgregarOferta> {
-  String dropdownValue = 'Tipo de producto';
+  String _dropdownValue = 'Tipo de producto';
+  final List<String> _items = <String>[
+    'Tipo de producto',
+    'Frutas',
+    'Verduras',
+    'Despensa',
+    'Productos higiene',
+    'Medicamento',
+    'Articulos de aseo',
+    'Otro',
+  ];
+
   final TextEditingController _inputName = TextEditingController();
   final TextEditingController _inputPrice = TextEditingController();
 
@@ -54,7 +66,7 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                 color: Colors.brown[50],
                 margin: EdgeInsets.symmetric(vertical: 15.0),
                 child: DropdownButton<String>(
-                  value: dropdownValue,
+                  value: _dropdownValue,
                   icon: const Icon(Icons.arrow_downward),
                   dropdownColor: Colors.brown[50],
                   elevation: 16,
@@ -65,19 +77,10 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                   ),
                   onChanged: (String? newValue) {
                     setState(() {
-                      dropdownValue = newValue!;
+                      _dropdownValue = newValue!;
                     });
                   },
-                  items: <String>[
-                    'Tipo de producto',
-                    'Frutas',
-                    'Verduras',
-                    'Despensa',
-                    'Productos higiene',
-                    'Medicamento',
-                    'Articulos de aseo',
-                    'Otro',
-                  ].map<DropdownMenuItem<String>>((String value) {
+                  items: _items.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),
@@ -92,7 +95,7 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Nombre de producto',
-                      hintText: 'Ejemplo: Pasta Carrozi5'),
+                      hintText: 'Ejemplo: Pasta Carozzi'),
                 ),
               ),
               Padding(
@@ -103,7 +106,7 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Precio del producto',
-                      hintText: 'Ejemplo: 20.000'),
+                      hintText: 'Ejemplo: 1.000'),
                 ),
               ),
               Container(
@@ -114,9 +117,9 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                     borderRadius: BorderRadius.circular(20)),
                 child: TextButton(
                   onPressed: () async {
-                    if (_inputName.text != "" && _inputPrice.text != "") {
+                    if (_items[0] != _dropdownValue && _inputName.text != "" && _inputPrice.text != "") {
                       if (await Provider.of<AppState>(context, listen: false)
-                          .sendOffer(_inputName.text, _inputPrice.text)) {
+                          .sendOffer(_inputName.text, _inputPrice.text, _dropdownValue)) {
                         Navigator.pop(context);
                         msg("¡La oferta ha sido enviado exitosamente!");
                       } else {
@@ -124,7 +127,7 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                       }
                     }
                     else{
-                      msg("Se rellenar el campo de nombre y precio");
+                      msg("Se debe completar el campo de nombre y precio");
                     }
                   },
                   child: const Text(

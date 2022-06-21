@@ -115,7 +115,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> registerAccount(
+  /*Future<void> registerAccount(
       String email,
       String displayName,
       String password,
@@ -127,6 +127,21 @@ class AppState extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       errorCallback(e);
     }
+  }*/
+
+  Future<bool> registerAccount(String name, String email, String password) async
+  {
+    try
+    {
+      CollectionReference collection = FirebaseFirestore.instance.collection("Cliente");
+      collection.add({"UID":_uid,"nombre":name,"email":email, "password":password});
+    }
+    catch(e)
+    {
+      print(e.toString());
+      return false;
+    }
+    return true;
   }
 
   void signOut() {
@@ -141,13 +156,13 @@ class AppState extends ChangeNotifier {
     _localSelected = local;
   }
 
-  Future<bool> sendOffer(String name, String price) async
+  Future<bool> sendOffer(String name, String price, String category) async
   {
     try
     {
       //Se busca la colección que almacena las consultas
       CollectionReference collection = FirebaseFirestore.instance.collection("Local").doc(_localSelected?.id).collection("Oferta");
-      collection.add({"UID":_uid,"nombre":name,"price":int.parse(price)});
+      collection.add({"UID":_uid,"nombre":name,"price":int.parse(price), "category":category});
     }
     catch(e)
     {
