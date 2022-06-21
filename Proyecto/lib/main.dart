@@ -1,16 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:ofertas_flutter/screens/reporte.dart';
+import 'package:provider/provider.dart';
+
+import 'package:ofertas_flutter/app_state.dart';
 import 'package:ofertas_flutter/screens/home.dart';
 import 'package:ofertas_flutter/screens/login.dart';
 import 'package:ofertas_flutter/screens/agregar_oferta.dart';
-import 'package:ofertas_flutter/screens/register.dart';
+import 'package:ofertas_flutter/screens/registro.dart';
 import 'package:ofertas_flutter/screens/ofertas.dart';
 import 'package:ofertas_flutter/screens/soporte.dart';
 import 'package:ofertas_flutter/screens/preguntas.dart';
 import 'package:ofertas_flutter/screens/opciones.dart';
 
-void main() => runApp(MaterialApp(
-    initialRoute: '/login',
-    routes: {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AppState(),
+      builder: (context, _) => OfertasFlutter(),
+    ),
+  );
+}
+class OfertasFlutter extends StatelessWidget {
+  @override
+    Widget build(BuildContext context) => MaterialApp(
+  initialRoute: '/login',
+  routes:
+   {
       '/': (context) => const Home(),
       '/login': (context) => Login(),
       '/register': (context) => Register(),
@@ -19,12 +41,22 @@ void main() => runApp(MaterialApp(
       '/preguntas': (context) => Preguntas(),
       '/opciones': (context) => Opciones(),
       '/agregar_oferta': (context) => AgregarOferta(),
+     '/reporte': (context) => Reporte(),
     },
     theme: ThemeData(
-      colorScheme: ColorScheme.fromSwatch(
-        primarySwatch: Colors.indigo
-      ),
-      canvasColor: Colors.brown[200]
+        colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: Colors.indigo
+        ),
+        buttonTheme: ButtonThemeData(
+          buttonColor: Colors.indigo[600], // Background color (orange in my case).
+          textTheme: ButtonTextTheme.accent,
+          colorScheme:
+          Theme.of(context).colorScheme.copyWith(secondary: Colors.white), // Text color
+        ),
+        iconTheme: IconThemeData(
+          color: Colors.brown[50]
+        ),
+        canvasColor: Colors.brown[200]
     ),
     /*
     theme: ThemeData(
@@ -39,5 +71,5 @@ void main() => runApp(MaterialApp(
       ),
     ),
      */
-));
-
+  );
+}

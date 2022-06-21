@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../app_state.dart';
 
 // Press the Navigation Drawer button to the left of AppBar to show
 // a simple Drawer with two items.
@@ -21,18 +24,20 @@ class NavDrawer extends Drawer {
 
   @override
   Widget build(BuildContext context) {
-    final drawerHeader = UserAccountsDrawerHeader(
-      decoration: BoxDecoration(
-        color: Colors.indigo[600]
-      ),
-      accountName: Text(
-        username,
-      ),
-      accountEmail: Text(
-        email,
-      ),
-      currentAccountPicture: const CircleAvatar(
-        child: FlutterLogo(size: 42.0),
+    final drawerHeader = Consumer<AppState>(
+      builder: (context, appState, _) => UserAccountsDrawerHeader(
+        decoration: BoxDecoration(
+            color: Colors.indigo[600]
+        ),
+        accountName: Text(
+          appState.user.name,
+        ),
+        accountEmail: Text(
+          appState.user.email,
+        ),
+        currentAccountPicture: const CircleAvatar(
+          child: FlutterLogo(size: 42.0),
+        ),
       ),
     );
     return SizedBox(
@@ -102,7 +107,8 @@ class NavDrawer extends Drawer {
                 title: Text("Cerrar sesión"),
                 leading: const Icon(Icons.person_pin),
                 onTap: () {
-                  Navigator.pushNamedAndRemoveUntil(context, '/login', ModalRoute.withName("/"));
+                  Provider.of<AppState>(context, listen:false).signOut();
+                  openNamed(context, '/login');
                 },
               ),
             ],

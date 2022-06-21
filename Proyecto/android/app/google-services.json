@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "452282934554",
+    "firebase_url": "https://ofertas-flutter-default-rtdb.firebaseio.com",
+    "project_id": "ofertas-flutter",
+    "storage_bucket": "ofertas-flutter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:452282934554:android:acbdef658c7d51f0da78a3",
+        "android_client_info": {
+          "package_name": "com.developmentcds.ofertas_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "452282934554-i2mdv296ikkd47qj54tv5osv2i9h9jdk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIreB-KuVsIHd6sEThq43vjB2C3rIusfM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "452282934554-i2mdv296ikkd47qj54tv5osv2i9h9jdk.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "452282934554-rrbfevq5m26c2aov6sg11rn59nca4tad.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.developmentcds.ofertasFlutter"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

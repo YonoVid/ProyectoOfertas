@@ -1,21 +1,36 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:ofertas_flutter/widgets/formbase.dart';
 import 'package:ofertas_flutter/widgets/labelcheckbox.dart';
+import 'package:provider/provider.dart';
+
+import '../app_state.dart';
 
 class Register extends StatefulWidget {
-  Register({Key? key}) : super(key: key);
+  const Register({Key? key}) : super(key: key);
 
   @override
   State<Register> createState() => _RegisterState();
 }
 
 class _RegisterState extends State<Register> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  final TextEditingController _inputName = TextEditingController();
+  final TextEditingController _inputEmail = TextEditingController();
+  final TextEditingController _inputPassword = TextEditingController();
+  final TextEditingController _inputConfirmpassword = TextEditingController();
+
+  void msg(String msg){
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
-    bool _Remember = false;
+    //bool _Remember = false;
 
     return Scaffold(
       body: Center(
@@ -31,28 +46,31 @@ class _RegisterState extends State<Register> {
                 ),
                 child: Center(child: const FlutterLogo(size: 100.0)),
               ),
-              const Padding(
+               Padding(
                 padding: EdgeInsets.all(10),
                 child: TextField(
+                  controller: _inputName,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Nombre de usuario',
                       hintText: 'Mínimo 6 caracteres'),
                 ),
               ),
-              const Padding(
+               Padding(
                 padding: EdgeInsets.all(10),
                 child: TextField(
+                  controller: _inputEmail,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Correo electrónico',
                       hintText: 'Ejemplo: usuario@correo.cl'),
                 ),
               ),
-              const Padding(
+               Padding(
                 padding: EdgeInsets.all(10),
                 child: TextField(
                   obscureText: true,
+                  controller: _inputPassword,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       fillColor: Colors.white,
@@ -60,10 +78,11 @@ class _RegisterState extends State<Register> {
                       hintText: 'Mínimo 8 caracteres y un símbolo'),
                 ),
               ),
-              const Padding(
+               Padding(
                 padding: EdgeInsets.all(10),
                 child: TextField(
                   obscureText: true,
+                  controller: _inputConfirmpassword,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       fillColor: Colors.white,
@@ -77,8 +96,23 @@ class _RegisterState extends State<Register> {
                     color: Colors.indigo[800],
                     borderRadius: BorderRadius.circular(20)),
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    if (_inputName.text != "" && _inputEmail.text != "" && _inputPassword.text != "" && _inputConfirmpassword.text != "") {
+                      //if (_inputPassword == _inputConfirmpassword) {
+                        if (await Provider.of<AppState>(context, listen: false)
+                            .registerAccount(_inputEmail.text, _inputName.text, _inputPassword.text, (e) { })) {
+                          Navigator.pop(context);
+                          msg("¡El usuario ha sido registrado exitosamente!, Ya puedes iniciar sesión");
+                        } else {
+                          msg("Ha ocurrido un error al registrar el usuario");
+                        }
+                      /*} else {
+                        msg("Las contraseñas no coinciden");
+                      }*/
+                    }
+                    else{
+                      msg("Se deben completar todos los campos");
+                    }
                   },
                   child: const Text(
                     'Registrarse',
