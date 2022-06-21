@@ -53,21 +53,35 @@ class OfertasBusqueda extends StatefulWidget {
 }
 
 class _OfertasBusquedaState extends State<OfertasBusqueda> {
+
+  Set<Offer> offers = {};
+  int _indexLocal = 0;
+  int _indexOffer = 0;
+
+  @override
+  void initState(){
+    super.initState();
+    _loadOffer();
+  }
+
+  void _loadOffer() async
+  {
+    offers = offers.union(await Provider.of<AppState>(context, listen: false).getOffersFrom(_indexLocal, _indexOffer));
+    setState((){});
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, _) =>
-        ListView(
+    return ListView(
           children: [
-            for(var data in appState.locals.values)
+            for(var data in offers)
                 ListOfertas(
                   thumbnail: Container(),
                   title: data.name,
-                  price: "\$",
+                  price: "\$"+data.price.toString(),
                   location: "null"//data.location.toString(),
                 ),
           ],
-        ),
     );
   }
 }

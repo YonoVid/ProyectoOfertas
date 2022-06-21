@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ofertas_flutter/screens/reporte.dart';
 import 'package:provider/provider.dart';
 
 import 'package:ofertas_flutter/app_state.dart';
@@ -40,6 +41,7 @@ class OfertasFlutter extends StatelessWidget {
       '/preguntas': (context) => Preguntas(),
       '/opciones': (context) => Opciones(),
       '/agregar_oferta': (context) => AgregarOferta(),
+     '/reporte': (context) => Reporte(),
     },
     theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(
@@ -50,6 +52,9 @@ class OfertasFlutter extends StatelessWidget {
           textTheme: ButtonTextTheme.accent,
           colorScheme:
           Theme.of(context).colorScheme.copyWith(secondary: Colors.white), // Text color
+        ),
+        iconTheme: IconThemeData(
+          color: Colors.brown[50]
         ),
         canvasColor: Colors.brown[200]
     ),

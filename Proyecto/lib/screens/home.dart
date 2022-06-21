@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'
-    show FirebaseFirestore, GeoPoint, QuerySnapshot;
 import 'package:ofertas_flutter/app_state.dart';
-//import 'package:firebase_core/firebase_auth.dart';
+
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -23,9 +21,7 @@ class _HomeState extends State<Home> {
 
   final GlobalKey<_DataOverlayState> _keyDataOverlay = GlobalKey();
 
-  String _localName = "";
-  Set<Offer> _localOffers = {};
-  DataOverlay _contextMenu = DataOverlay(name: "", offers: {});
+  DataOverlay _contextMenu = DataOverlay(name: "");
 
   final LatLng _center = const LatLng(-33.45694, -70.64827);
 
@@ -44,17 +40,19 @@ class _HomeState extends State<Home> {
     print(local.id + "|" + local.name + "|" + local.location.toString());
     mapController
         .animateCamera(CameraUpdate.newLatLngZoom(local.location, 14.0));
-
-    Set<Offer> offers =
-    await Provider.of<AppState>(context, listen: false).getOffers(local.id);
-    // Declaring and Initializing OverlayState and
-    // OverlayEntry objects
-    _keyDataOverlay.currentState!.loadData(local.name, offers);
-
+    if (local.id != _keyDataOverlay.currentState!._id) {
+      Set<Offer> offers = await Provider.of<AppState>(context, listen: false)
+          .getOffersOf(local.id);
+      // Declaring and Initializing OverlayState and
+      // OverlayEntry objects
+      _keyDataOverlay.currentState!.loadData(local, offers);
+    } else {
+      _keyDataOverlay.currentState!.show();
+    }
   }
 
   void _hideOverlay() async {
-      _keyDataOverlay.currentState!.hide();
+    _keyDataOverlay.currentState!.hide();
   }
 
   @override
@@ -80,8 +78,7 @@ class _HomeState extends State<Home> {
         ),
         DataOverlay(
           key: _keyDataOverlay,
-          name: _localName,
-          offers: _localOffers,
+          name: "Local",
         )
       ]),
       backgroundColor: Colors.brown[200],
@@ -101,102 +98,166 @@ class _HomeState extends State<Home> {
 }
 
 class DataOverlay extends StatefulWidget {
-  const DataOverlay({Key? key, required this.name, required this.offers})
-      : super(key: key);
+  const DataOverlay({Key? key, required this.name}) : super(key: key);
 
   final String name;
-  final Set<Offer> offers;
 
   @override
   State<DataOverlay> createState() => _DataOverlayState();
 }
 
 class _DataOverlayState extends State<DataOverlay> {
+  final _scrollController = ScrollController();
   bool _visibleState = false;
-  String _name  = "";
+  bool _visibleExtra = false;
+  String _id = "";
+  String _name = "";
+  LatLng _location = const LatLng(0.0, 0.0);
   Set<Offer> _offers = {};
 
-  void loadData(String name, Set<Offer> offers)
-  {
-    setState((){_name = name; _offers = offers;_visibleState=true;});
+  void loadData(Local local, Set<Offer> offers) {
+    setState(() {
+      _id = local.id;
+      _name = local.name;
+      _location = local.location;
+      _offers = offers;
+      _visibleState = true;
+    });
+    Provider.of<AppState>(context, listen: false).setLocal(local);
   }
 
-  void hide(){
-    if(_visibleState) {
-      setState((){_visibleState=!_visibleState;});
+  void hide() {
+    if (_visibleState) {
+      setState(() {
+        _visibleState = !_visibleState;
+        _visibleExtra = false;
+      });
     }
   }
 
-  void changeVisible(){
-    setState((){_visibleState=!_visibleState;});
+  void show() {
+    if (!_visibleState) {
+      setState(() {
+        _visibleState = !_visibleState;
+      });
+    }
+  }
+
+  void changeVisible() {
+    setState(() {
+      _visibleState = !_visibleState;
+    });
+  }
+
+  void goToLocalPage() {
+    //Provider.of<AppState>(context, listen: false).setLocal(_local, _offers);
+  }
+
+  void scrollToLast() {
+    _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 250), curve: Curves.decelerate);
   }
 
   @override
   Widget build(BuildContext context) {
     return Visibility(
       visible: _visibleState,
-      child: Stack(children: [
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            margin: EdgeInsets.symmetric(vertical: 0.0, horizontal: 5.0),
-            height: MediaQuery.of(context).size.height * 0.15,
-            color: Colors.indigo[500],
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                for (var data in _offers)
-                  DataOffer(
-                    name: data.name,
-                    price: data.price.toString(),
-                  ),
-              ],
+      child: Positioned(
+        height: MediaQuery.of(context).size.height * 0.35,
+        bottom: 5.0,
+        left: 0.0,
+        right: 0.0,
+        child: Stack(children: [
+          Positioned(
+            bottom: 0.0,
+            left: 0.0,
+            right: 0.0,
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 0.0, horizontal: 5.0),
+              height: MediaQuery.of(context).size.height * 0.25,
+              color: Colors.indigo[500],
+              child: ListView(
+                controller: _scrollController,
+                padding: EdgeInsets.zero,
+                children: [
+                  for (var data in _offers)
+                    DataOffer(
+                      offer: data,
+                    ),
+                ],
+              ),
             ),
           ),
-        ),
-        Align(
-            alignment: FractionalOffset(0.6, 0.845),
-            child: Card(
-              margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
-              color: Colors.indigo[500],
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                child: Text(
-                  _name,
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.brown[50],
+          Positioned(
+              top: 30,
+              left: 120,
+              right: 20,
+              child: Card(
+                margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                color: Colors.indigo[500],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 10.0, horizontal: 10.0),
+                  child: Text(
+                    _name,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.brown[50],
+                    ),
                   ),
                 ),
+              )),
+          Positioned(
+            top: 20.0,
+            left: 20.0,
+            child: GestureDetector(
+              onTap: () {
+                setState((){_visibleExtra = !_visibleExtra;});
+              },
+              child: Container(
+                height: 100.0,
+                width: 100.0,
+                decoration: BoxDecoration(
+                  color: Colors.brown[100],
+                  border: Border.all(width: 2.0, color: Colors.indigo),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Image.asset('assets/P18.png'),
               ),
-            )),
-        Align(
-          alignment: FractionalOffset(0.08, 0.88),
-          child: Container(
-            height: 100.0,
-            width: 100.0,
-            decoration: BoxDecoration(
-              color: Colors.brown[100],
-              border: Border.all(width: 2.0, color: Colors.indigo),
-              borderRadius: BorderRadius.circular(100),
             ),
-            child: Image.asset('assets/P18.png'),
           ),
-        ),
-      ]),
+          Visibility(
+            visible: _visibleExtra,
+            child: Positioned(
+              top: 0.0,
+              left: 20.0,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.indigo[500],
+                  shape: CircleBorder(),
+                ),
+                child: Icon(
+                  Icons.add,
+                  color: Colors.brown[50],
+                ),
+                onPressed: () {
+                  Navigator.pushNamed(context, "/agregar_oferta");
+                },
+              ),
+            ),
+          ),
+        ]),
+      ),
     );
   }
 }
 
 class DataOffer extends StatelessWidget {
-  const DataOffer({Key? key, required this.name, required this.price})
-      : super(key: key);
+  const DataOffer({Key? key, required this.offer}) : super(key: key);
 
-  final String name;
-  final String price;
+  final Offer offer;
 
   @override
   Widget build(BuildContext context) {
@@ -215,11 +276,11 @@ class DataOffer extends StatelessWidget {
                   style: TextStyle(color: Colors.brown[50]),
                   child: ListTile(
                     title: Text(
-                      name,
+                      offer.name,
                       style: TextStyle(color: Colors.brown[50]),
                     ),
                     subtitle: Text(
-                      "\$" + price,
+                      "\$" + offer.price.toString(),
                       style: TextStyle(color: Colors.brown[50]),
                     ),
                     style: ListTileStyle.list,
@@ -234,13 +295,14 @@ class DataOffer extends StatelessWidget {
                         onPressed: () {},
                         icon: Icon(
                           Icons.favorite_rounded,
-                          color: Colors.brown[50],
                         ))),
                 Expanded(
                     child: IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Provider.of<AppState>(context, listen: false).offer = offer;
+                    Navigator.pushNamed(context, "/reporte");
+                  },
                   icon: Icon(Icons.error_rounded),
-                  color: Colors.brown[50],
                 )),
               ],
             ),
