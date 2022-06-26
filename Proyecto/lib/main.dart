@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ofertas_flutter/screens/agregar_local.dart';
 import 'package:ofertas_flutter/screens/reporte.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +17,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 void main() async {
+  // Avoid errors caused by flutter upgrade.
+  // Importing 'package:flutter/widgets.dart' is required.
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -40,6 +43,7 @@ class OfertasFlutter extends StatelessWidget {
       '/soporte': (context) => Soporte(),
       '/preguntas': (context) => Preguntas(),
       '/opciones': (context) => Opciones(),
+     '/agregar_local': (context) => AgregarLocal(),
       '/agregar_oferta': (context) => AgregarOferta(),
      '/reporte': (context) => Reporte(),
     },

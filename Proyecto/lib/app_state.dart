@@ -5,9 +5,15 @@ import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, UserCredential;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:geocode/geocode.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart' as path;
 
 class AppState extends ChangeNotifier {
+  late Future<Database> databaseOffer;
+
   ApplicationLoginState _loginState = ApplicationLoginState.loggedOut;
   ApplicationLoginState get loginState => _loginState;
 
@@ -19,6 +25,12 @@ class AppState extends ChangeNotifier {
   Map<String, Local> _locals = <String, Local>{};
   Map<String, Local> get locals => _locals;
 
+  Function _overlayData = (){};
+
+  LatLng _location = LatLng(0.0, 0.0);
+  LatLng get location => _location;
+  set location(latlng) => _location = latlng;
+
   Local? _localSelected = null;
   Local? get local => _localSelected;
   Offer? _offerSelected = null;
@@ -28,17 +40,38 @@ class AppState extends ChangeNotifier {
   Set<Offer> get offersSelected => _offersSelected;
   //set offers (offer) => _offersSelected = offer;
 
+  Set<String> favoritesId = {};
+
+  Set<Marker> _markers = {};
+  Set<Marker> get markers => _markers;
+
   AppState() {
     init();
   }
   //Inicio de estado de la aplicación busca al usuario y carga los datos de
   //locales en la base de datos
   Future<void> init() async {
-    /*WidgetsFlutterBinding.ensureInitialized();
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );*/
+    // Avoid errors caused by flutter upgrade.
+    // Importing 'package:flutter/widgets.dart' is required.
+    WidgetsFlutterBinding.ensureInitialized();
     startLoginFlow();
+    databaseOffer = openDatabase(
+      // Set the path to the database. Note: Using the `join` function from the
+      // `path` package is best practice to ensure the path is correctly
+      // constructed for each platform.
+      path.join(await getDatabasesPath(), 'offer_database.db'),
+        onCreate: (db, version) {
+          // Run the CREATE TABLE statement on the database.
+          return db.execute(
+            'CREATE TABLE offer(id TEXT PRIMARY KEY, name TEXT, price INTEGER)',
+          );
+        },
+      version: 1,
+    );
+    for(var offer in await getFavorites())
+      {
+       favoritesId.add(offer.id);
+      }
     print("Data from Cloud");
     FirebaseAuth.instance.userChanges().listen((user) {
       if (user != null) {
@@ -56,6 +89,7 @@ class AppState extends ChangeNotifier {
         .snapshots()
         .listen((snapshot) {
       _locals.clear();
+      _markers.clear();
       for (final document in snapshot.docs) {
         print("Getting data from Cloud");
         GeoPoint geoPoint = document.data()['ubicacion'];
@@ -67,6 +101,7 @@ class AppState extends ChangeNotifier {
           location: LatLng(geoPoint.latitude, geoPoint.longitude),
           offers: document.reference.collection('Oferta'),
         );
+        getMarkers(_overlayData);
       }
 
       notifyListeners();
@@ -152,6 +187,12 @@ class AppState extends ChangeNotifier {
     return _loginState == ApplicationLoginState.loggedIn;
   }
 
+  void setOverlayFunction(Function overlayFunction) {
+    _overlayData = overlayFunction;
+    getMarkers(_overlayData);
+    notifyListeners();
+  }
+
   void setLocal(Local local) {
     _localSelected = local;
     _offersSubscription?.cancel();
@@ -164,6 +205,24 @@ class AppState extends ChangeNotifier {
           getOffersOf(local.id);
           notifyListeners();
     });
+  }
+
+  Future<bool> sendLocal(String name) async {
+    try {
+      //Se busca la colección que almacena las consultas
+      CollectionReference collection = FirebaseFirestore.instance
+          .collection("LocalPetition");
+      collection.add({
+        "UID": _user.uid,
+        "nombre": name,
+        "ubicacion": GeoPoint(_location.latitude, _location.longitude),
+      });
+      //_offersSelected.add(Offer(id:_uid, name:name,price: int.parse(price)));
+    } catch (e) {
+      print(e.toString());
+      return false;
+    }
+    return true;
   }
 
   Future<bool> sendOffer(String name, String price, String category) async {
@@ -227,9 +286,46 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
+  Future<String> getLocation() async{
+    Location location = new Location();
+    PermissionStatus _permissionStatus;
+    if(!(await location.serviceEnabled()))
+      {
+        if(!(await location.requestService()))
+          {
+            return "";
+          }
+      }
+    _permissionStatus = await location.hasPermission();
+    if(_permissionStatus == PermissionStatus.denied)
+    {
+      _permissionStatus = await location.requestPermission();
+      if(_permissionStatus != PermissionStatus.granted)
+      {
+        return "";
+      }
+    }
+
+    LocationData _currentPosition = await location.getLocation();
+
+    return _currentPosition.latitude.toString() + "," + _currentPosition.longitude.toString();
+  }
+
+  void userMarker(Marker marker)
+  {
+    _markers.add(marker);
+    notifyListeners();
+  }
+
+  void removeUserMarker()
+  {
+    _markers.removeWhere((marker) => marker.markerId == MarkerId("user"));
+    notifyListeners();
+  }
+
   Set<Marker> getMarkers(Function function) {
     //Se crea un Set de marcadores
-    Set<Marker> _markers = <Marker>{};
+    _markers = <Marker>{};
     //De los Locales obtenidos desde la base de datos
     //se crea un marcador por cada uno y se asigna la
     //función 'function' cuando son presionados
@@ -240,6 +336,7 @@ class AppState extends ChangeNotifier {
         position: value.location,
         onTap: () {
           function(value);
+          removeUserMarker();
         },
       ));
     });
@@ -317,6 +414,41 @@ class AppState extends ChangeNotifier {
     }
     return _offers;
   }
+
+  Future<bool> saveFavorite(Offer offer) async
+  {
+    //Obtener referencia de la base de datos
+    final db = await databaseOffer;
+    //Añadir oferta a la base de datos
+    if((await db.query('offer',where: 'id = ?', whereArgs: [(offer.id)])).isEmpty){
+      await db.insert('offer', offer.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+      favoritesId.add(offer.id);
+    }
+    else{
+      await db.delete('offer', where: 'id = ?', whereArgs: [offer.id]);
+      favoritesId.remove(offer.id);
+    }
+    notifyListeners();
+    print(await getFavorites());
+    return true;
+  }
+
+  Future<List<Offer>> getFavorites() async
+  {
+    //Obtener referencia de la base de datos
+    final db = await databaseOffer;
+    // Query the table for all The Dogs.
+    final List<Map<String, dynamic>> maps = await db.query('offer');
+
+    // Convert the List<Map<String, dynamic> into a List<Dog>.
+    return List.generate(maps.length, (i) {
+      return Offer(
+        id: maps[i]['id'],
+        name: maps[i]['name'],
+        price: maps[i]['price'],
+      );
+    });
+  }
 }
 
 class Local {
@@ -365,6 +497,22 @@ class Offer {
   final String id;
   final String name;
   final int price;
+
+  // Mapa de Oferta para almacenar con sqlite. colmunas deben ser nombres
+  // en base de datos
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'price': price,
+    };
+  }
+
+  // ToString para facilitar lectura en consola de los datos.
+  @override
+  String toString() {
+    return 'Offer{id: $id, name: $name, price: $price}';
+  }
 }
 
 class User {

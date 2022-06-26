@@ -32,8 +32,8 @@ class _OfertasState extends State<Ofertas> {
         ),
         body: TabBarView(
           children: [
-            OfertasBusqueda(),
-            OfertasBusqueda(),
+            OfertasBusqueda(local: false),
+            OfertasBusqueda(local: true),
           ],
         ),
         drawer: NavDrawer(
@@ -46,17 +46,20 @@ class _OfertasState extends State<Ofertas> {
 }
 
 class OfertasBusqueda extends StatefulWidget {
-  const OfertasBusqueda({Key? key}) : super(key: key);
+  OfertasBusqueda({Key? key, required this.local}) : super(key: key);
 
+  bool local;
   @override
-  State<OfertasBusqueda> createState() => _OfertasBusquedaState();
+  State<OfertasBusqueda> createState() => _OfertasBusquedaState(local: local);
 }
 
 class _OfertasBusquedaState extends State<OfertasBusqueda> {
-
+  _OfertasBusquedaState({required this.local}):super();
+  
   Set<Offer> offers = {};
   int _indexLocal = 0;
   int _indexOffer = 0;
+  bool local;
 
   @override
   void initState(){
@@ -66,7 +69,14 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
 
   void _loadOffer() async
   {
-    offers = offers.union(await Provider.of<AppState>(context, listen: false).getOffersFrom(_indexLocal, _indexOffer));
+    if(local)
+      {
+        offers.addAll(await Provider.of<AppState>(context, listen: false).getFavorites());
+      }
+    else{
+
+      offers = offers.union(await Provider.of<AppState>(context, listen: false).getOffersFrom(_indexLocal, _indexOffer));
+    }
     setState((){});
   }
 
@@ -77,9 +87,7 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
             for(var data in offers)
                 ListOfertas(
                   thumbnail: Container(),
-                  title: data.name,
-                  price: "\$"+data.price.toString(),
-                  location: "null"//data.location.toString(),
+                  offer: data,
                 ),
           ],
     );
@@ -90,15 +98,11 @@ class ListOfertas extends StatelessWidget {
   const ListOfertas({
     Key? key,
     required this.thumbnail,
-    required this.title,
-    required this.price,
-    required this.location,
+    required this.offer,
   }) : super(key: key);
 
   final Widget thumbnail;
-  final String title;
-  final String price;
-  final String location;
+  final Offer offer;
 
   @override
   Widget build(BuildContext context) {
@@ -119,14 +123,35 @@ class ListOfertas extends StatelessWidget {
             ),
             Expanded(
               flex: 3,
-              child: _OfertasDatos(name: title, price: price, location: location,),
+              child: _OfertasDatos(name: offer.name, price: "\$"+offer.price.toString(), location: "null",),
             ),
+
             Expanded(
               flex: 1,
-              child: IconButton(
-                  color: Colors.grey[500],
-                  icon: Icon(Icons.favorite_rounded),
-                  onPressed: (){},
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                      child: Consumer<AppState>(
+                        builder: (context, appState, _) => IconButton(
+                            onPressed: () {
+                              Provider.of<AppState>(context, listen: false).saveFavorite(offer);
+                            },
+                            icon: Icon(
+                              Icons.favorite_rounded,
+                              color: (appState.favoritesId.contains(offer.id))?Colors.redAccent:Colors.brown[50],
+                            )),
+                      )),
+                  Flexible(
+                      child: IconButton(
+                        onPressed: () {
+                          Provider.of<AppState>(context, listen: false).offerSelected = offer;
+                          Navigator.pushNamed(context, "/reporte");
+                        },
+                        icon: Icon(Icons.error_rounded),
+                          color: Colors.brown[50]
+                      )),
+                ],
               ),
             ),
           ],

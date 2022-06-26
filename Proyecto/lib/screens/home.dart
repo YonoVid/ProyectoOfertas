@@ -25,9 +25,14 @@ class _HomeState extends State<Home> {
 
   final LatLng _center = const LatLng(-33.45694, -70.64827);
 
+  Set<Marker> _markers = {};
+  bool _canAddLocal = false;
+
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     _setStyle(controller);
+
+    Provider.of<AppState>(context, listen: false).setOverlayFunction(overlayData);
   }
 
   void _setStyle(GoogleMapController controller) async {
@@ -41,11 +46,11 @@ class _HomeState extends State<Home> {
     mapController
         .animateCamera(CameraUpdate.newLatLngZoom(local.location, 14.0));
     print(local.id != Provider.of<AppState>(context, listen: false).local?.id);
-    if(local.id != Provider.of<AppState>(context, listen: false).local?.id){
-
+    if (local.id != Provider.of<AppState>(context, listen: false).local?.id) {
       Provider.of<AppState>(context, listen: false).setLocal(local);
       await Provider.of<AppState>(context, listen: false).getOffersOf(local.id);
     }
+    if(_canAddLocal) setState((){_canAddLocal = false;});
     _keyDataOverlay.currentState!.show();
   }
 
@@ -57,11 +62,22 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("OFERTAS"),
-        centerTitle: true,
-        backgroundColor: Colors.indigo[500],
-        elevation: 0.0,
-      ),
+          title: Text("OFERTAS"),
+          centerTitle: true,
+          backgroundColor: Colors.indigo[500],
+          elevation: 0.0,
+          actions: <Widget>[
+            Visibility(
+              visible: _canAddLocal,
+              child: IconButton(
+                icon: const Icon(Icons.add_business_outlined),
+                tooltip: 'Añadir local',
+                onPressed: () {
+                  Navigator.pushNamed(context, "/agregar_local");
+                },
+              ),
+            ),
+          ]),
       body: Stack(children: [
         Consumer<AppState>(
           builder: (context, appState, _) => GoogleMap(
@@ -70,8 +86,32 @@ class _HomeState extends State<Home> {
               target: _center,
               zoom: 11.0,
             ),
-            markers: appState.getMarkers(overlayData),
-            onTap: (context) => {_hideOverlay()},
+            markers: appState.markers,
+            mapToolbarEnabled: false,
+            onTap: (LatLng point) {
+              print(point.toString());
+              if (_keyDataOverlay.currentState?.isVisible() as bool) {
+                _hideOverlay();
+              } else {
+                appState.removeUserMarker();
+              }
+              if(_canAddLocal) setState((){_canAddLocal = false;});
+            },
+            onLongPress: (LatLng point) {
+                setState((){_canAddLocal = true;});
+                appState.location = point;
+                appState.userMarker(Marker(
+                  markerId: const MarkerId("user"),
+                  position: point,
+                  infoWindow: InfoWindow(
+                    title: 'Solicitar nuevo local',
+                    onTap: (){},
+                  ),
+                  onTap: () {},
+                  icon:
+                  BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),));
+                print(appState.markers.toString());
+              }
           ),
         ),
         DataOverlay(
@@ -132,6 +172,8 @@ class _DataOverlayState extends State<DataOverlay> {
     });
   }
 
+  bool isVisible() => _visibleState;
+
   void goToLocalPage() {
     //Provider.of<AppState>(context, listen: false).setLocal(_local, _offers);
   }
@@ -143,8 +185,7 @@ class _DataOverlayState extends State<DataOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    Local? _local = Provider.of<AppState>(context, listen: false)
-        .local;
+    Local? _local = Provider.of<AppState>(context, listen: false).local;
     return Visibility(
       visible: _visibleState,
       child: Positioned(
@@ -186,7 +227,7 @@ class _DataOverlayState extends State<DataOverlay> {
                   padding: const EdgeInsets.symmetric(
                       vertical: 10.0, horizontal: 10.0),
                   child: Text(
-                    (_local?.name == null)?"":_local?.name as String,
+                    (_local?.name == null) ? "" : _local?.name as String,
                     textAlign: TextAlign.left,
                     style: TextStyle(
                       fontSize: 18.0,
@@ -201,7 +242,9 @@ class _DataOverlayState extends State<DataOverlay> {
             left: 20.0,
             child: GestureDetector(
               onTap: () {
-                setState((){_visibleExtra = !_visibleExtra;});
+                setState(() {
+                  _visibleExtra = !_visibleExtra;
+                });
               },
               child: Container(
                 height: 100.0,
@@ -241,11 +284,15 @@ class _DataOverlayState extends State<DataOverlay> {
   }
 }
 
-class DataOffer extends StatelessWidget {
-  const DataOffer({Key? key, required this.offer}) : super(key: key);
+class DataOffer extends StatefulWidget {
+  DataOffer({Key? key, required this.offer}) : super(key: key);
 
   final Offer offer;
+  @override
+  State<DataOffer> createState() => _DataOfferState();
+}
 
+class _DataOfferState extends State<DataOffer> {
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -263,11 +310,11 @@ class DataOffer extends StatelessWidget {
                   style: TextStyle(color: Colors.brown[50]),
                   child: ListTile(
                     title: Text(
-                      offer.name,
+                      widget.offer.name,
                       style: TextStyle(color: Colors.brown[50]),
                     ),
                     subtitle: Text(
-                      "\$" + offer.price.toString(),
+                      "\$" + widget.offer.price.toString(),
                       style: TextStyle(color: Colors.brown[50]),
                     ),
                     style: ListTileStyle.list,
@@ -278,15 +325,25 @@ class DataOffer extends StatelessWidget {
             Column(
               children: [
                 Expanded(
-                    child: IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.favorite_rounded,
-                        ))),
+                    child: Consumer<AppState>(
+                  builder: (context, appState, _) => IconButton(
+                      onPressed: () {
+                        //setState((){print('Prefavorite:$favorite');favorite = !favorite;print('Postfavorite:$favorite');});
+                        Provider.of<AppState>(context, listen: false)
+                            .saveFavorite(widget.offer);
+                      },
+                      icon: Icon(
+                        Icons.favorite_rounded,
+                        color: (appState.favoritesId.contains(widget.offer.id))
+                            ? Colors.redAccent
+                            : Colors.brown[50],
+                      )),
+                )),
                 Expanded(
                     child: IconButton(
                   onPressed: () {
-                    Provider.of<AppState>(context, listen: false).offerSelected = offer;
+                    Provider.of<AppState>(context, listen: false)
+                        .offerSelected = widget.offer;
                     Navigator.pushNamed(context, "/reporte");
                   },
                   icon: Icon(Icons.error_rounded),
