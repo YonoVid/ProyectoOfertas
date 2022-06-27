@@ -17,15 +17,21 @@ class AppState extends ChangeNotifier {
   ApplicationLoginState _loginState = ApplicationLoginState.loggedOut;
   ApplicationLoginState get loginState => _loginState;
 
-  User _user = User(uid:"anonymous", name:"anonymous", email:"");
+  User _user = User(uid: "anonymous", name: "anonymous", email: "");
   User get user => _user;
+
+  int _tabIndex = 0;
+  int get tabIndex => _tabIndex;
+  set tabIndex(index) => _tabIndex = index;
+  String _stringFilter = "";
+  set stringFilter(filter) => _stringFilter = filter;
 
   StreamSubscription<QuerySnapshot>? _markersSubscription;
   StreamSubscription<QuerySnapshot>? _offersSubscription;
   Map<String, Local> _locals = <String, Local>{};
   Map<String, Local> get locals => _locals;
 
-  Function _overlayData = (){};
+  Function _overlayData = () {};
 
   LatLng _location = LatLng(0.0, 0.0);
   LatLng get location => _location;
@@ -60,23 +66,22 @@ class AppState extends ChangeNotifier {
       // `path` package is best practice to ensure the path is correctly
       // constructed for each platform.
       path.join(await getDatabasesPath(), 'offer_database.db'),
-        onCreate: (db, version) {
-          // Run the CREATE TABLE statement on the database.
-          return db.execute(
-            'CREATE TABLE offer(id TEXT PRIMARY KEY, name TEXT, price INTEGER)',
-          );
-        },
+      onCreate: (db, version) {
+        // Run the CREATE TABLE statement on the database.
+        return db.execute(
+          'CREATE TABLE offer(id TEXT PRIMARY KEY, name TEXT, price INTEGER)',
+        );
+      },
       version: 1,
     );
-    for(var offer in await getFavorites())
-      {
-       favoritesId.add(offer.id);
-      }
+    for (var offer in await getFavorites()) {
+      favoritesId.add(offer.id);
+    }
     print("Data from Cloud");
     FirebaseAuth.instance.userChanges().listen((user) {
       if (user != null) {
-        _user.name = (user.displayName == null)?"user":user.displayName!;
-        _user.email = (user.email == null)?"":user.email!;
+        _user.name = (user.displayName == null) ? "user" : user.displayName!;
+        _user.email = (user.email == null) ? "" : user.email!;
         _user.uid = user.uid;
         _loginState = ApplicationLoginState.loggedIn;
       } else {
@@ -127,7 +132,8 @@ class AppState extends ChangeNotifier {
       }
       if (methods.contains('password')) {
         print("Login method to server");
-        UserCredential user = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        UserCredential user =
+            await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
@@ -156,7 +162,7 @@ class AppState extends ChangeNotifier {
       var credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       await credential.user!.updateDisplayName(displayName);
-      await signInWithEmailAndPassword(email, password, (e) { });
+      await signInWithEmailAndPassword(email, password, (e) {});
       return true;
     } on FirebaseAuthException catch (e) {
       print(e.toString());
@@ -180,7 +186,7 @@ class AppState extends ChangeNotifier {
 
   void signOut() {
     FirebaseAuth.instance.signOut();
-    _user = User(uid:"anonymous", name:"anonymous", email:"");
+    _user = User(uid: "anonymous", name: "anonymous", email: "");
   }
 
   bool isLogged() {
@@ -202,16 +208,16 @@ class AppState extends ChangeNotifier {
         .collection("Oferta")
         .snapshots()
         .listen((snapshot) {
-          getOffersOf(local.id);
-          notifyListeners();
+      getOffersOf(local.id);
+      notifyListeners();
     });
   }
 
   Future<bool> sendLocal(String name) async {
     try {
       //Se busca la colección que almacena las consultas
-      CollectionReference collection = FirebaseFirestore.instance
-          .collection("LocalPetition");
+      CollectionReference collection =
+          FirebaseFirestore.instance.collection("LocalPetition");
       collection.add({
         "UID": _user.uid,
         "nombre": name,
@@ -278,7 +284,8 @@ class AppState extends ChangeNotifier {
       CollectionReference collection =
           FirebaseFirestore.instance.collection("Consulta");
 
-      collection.add({"UID": _user.uid, "tipo": type, "descripcion": description});
+      collection
+          .add({"UID": _user.uid, "tipo": type, "descripcion": description});
     } catch (e) {
       print(e.toString());
       return false;
@@ -286,39 +293,35 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
-  Future<String> getLocation() async{
+  Future<String> getLocation() async {
     Location location = new Location();
     PermissionStatus _permissionStatus;
-    if(!(await location.serviceEnabled()))
-      {
-        if(!(await location.requestService()))
-          {
-            return "";
-          }
+    if (!(await location.serviceEnabled())) {
+      if (!(await location.requestService())) {
+        return "";
       }
+    }
     _permissionStatus = await location.hasPermission();
-    if(_permissionStatus == PermissionStatus.denied)
-    {
+    if (_permissionStatus == PermissionStatus.denied) {
       _permissionStatus = await location.requestPermission();
-      if(_permissionStatus != PermissionStatus.granted)
-      {
+      if (_permissionStatus != PermissionStatus.granted) {
         return "";
       }
     }
 
     LocationData _currentPosition = await location.getLocation();
 
-    return _currentPosition.latitude.toString() + "," + _currentPosition.longitude.toString();
+    return _currentPosition.latitude.toString() +
+        "," +
+        _currentPosition.longitude.toString();
   }
 
-  void userMarker(Marker marker)
-  {
+  void userMarker(Marker marker) {
     _markers.add(marker);
     notifyListeners();
   }
 
-  void removeUserMarker()
-  {
+  void removeUserMarker() {
     _markers.removeWhere((marker) => marker.markerId == MarkerId("user"));
     notifyListeners();
   }
@@ -397,6 +400,12 @@ class AppState extends ChangeNotifier {
           if (totalOffer >= 50) {
             break;
           }
+          if (_stringFilter != "" &&
+              !(data[e].data()['nombre'] as String)
+                  .toLowerCase()
+                  .contains(_stringFilter)) {
+            continue;
+          }
           _offers.add(Offer(
             id: data[e].id,
             name: data[e].data()['nombre'] as String,
@@ -415,16 +424,16 @@ class AppState extends ChangeNotifier {
     return _offers;
   }
 
-  Future<bool> saveFavorite(Offer offer) async
-  {
+  Future<bool> saveFavorite(Offer offer) async {
     //Obtener referencia de la base de datos
     final db = await databaseOffer;
     //Añadir oferta a la base de datos
-    if((await db.query('offer',where: 'id = ?', whereArgs: [(offer.id)])).isEmpty){
-      await db.insert('offer', offer.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    if ((await db.query('offer', where: 'id = ?', whereArgs: [(offer.id)]))
+        .isEmpty) {
+      await db.insert('offer', offer.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
       favoritesId.add(offer.id);
-    }
-    else{
+    } else {
       await db.delete('offer', where: 'id = ?', whereArgs: [offer.id]);
       favoritesId.remove(offer.id);
     }
@@ -433,21 +442,26 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
-  Future<List<Offer>> getFavorites() async
-  {
+  Future<List<Offer>> getFavorites() async {
     //Obtener referencia de la base de datos
+    List<Offer> offers = [];
     final db = await databaseOffer;
-    // Query the table for all The Dogs.
+    // Petición a base de datos local para obtener ofertas favoritas
     final List<Map<String, dynamic>> maps = await db.query('offer');
 
-    // Convert the List<Map<String, dynamic> into a List<Dog>.
-    return List.generate(maps.length, (i) {
-      return Offer(
-        id: maps[i]['id'],
-        name: maps[i]['name'],
-        price: maps[i]['price'],
-      );
-    });
+    // Convertir el mapa en una lista de objetos Offer
+    for (var data in maps) {
+      if (_stringFilter != "" &&
+          !(data['name'] as String).toLowerCase().contains(_stringFilter)) {
+        continue;
+      }
+      offers.add(Offer(
+        id: data['id'],
+        name: data['name'],
+        price: data['price'],
+      ));
+    }
+    return offers;
   }
 }
 

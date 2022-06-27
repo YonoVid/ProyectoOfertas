@@ -74,7 +74,7 @@ class _RegisterState extends State<Register> {
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       fillColor: Colors.white,
-                      labelText: 'Constraseña',
+                      labelText: 'Contraseña',
                       hintText: 'Mínimo 8 caracteres y un símbolo'),
                 ),
               ),

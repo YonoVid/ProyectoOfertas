@@ -9,20 +9,58 @@ import '../app_state.dart';
 class Ofertas extends StatefulWidget {
   const Ofertas({Key? key}) : super(key: key);
 
-  static final _OfertasTabKey = new GlobalKey<_OfertasState>();
+  static final _OfertasTabKey = GlobalKey<_OfertasState>();
 
   @override
   State<Ofertas> createState() => _OfertasState();
 }
 
-class _OfertasState extends State<Ofertas> {
+class _OfertasState extends State<Ofertas> with SingleTickerProviderStateMixin {
+
+  final TextEditingController _filterController = TextEditingController();
+
+  final GlobalKey<_OfertasBusquedaState> _offersKey = GlobalKey();
+  final GlobalKey<_OfertasBusquedaState> _favoriteOffersKey = GlobalKey();
+
+  void changeFilter(){
+    Provider.of<AppState>(context, listen: false).stringFilter = _filterController.text.toLowerCase();
+    _favoriteOffersKey.currentState?.reload();
+    _offersKey.currentState?.reload();
+  }
+
   @override
   Widget build(BuildContext context) {
+    var tabIndex = Provider.of<AppState>(context, listen: false).tabIndex;
     return DefaultTabController(
       length: 2,
+      initialIndex: tabIndex,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("OFERTAS"),
+          title: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  child: TextField(
+                    controller: _filterController,
+                    decoration: InputDecoration(
+                        hintStyle: TextStyle(color: Color(Colors.brown[50]!.value)),
+                        border: OutlineInputBorder(),
+                        hintText: 'Buscar término',
+                        suffixIcon: IconButton(     // Icon to
+                          icon: Icon(Icons.clear, color: Colors.brown[50],), // clear text
+                          onPressed: (){
+                            _filterController.clear();
+                            changeFilter();
+                            },),),
+                    style: TextStyle(color: Colors.brown[50]),
+                  ),
+                ),
+              ),
+              IconButton(onPressed: (){
+                changeFilter();
+              }, icon: Icon(Icons.search))
+            ],
+          ),
           bottom: TabBar(
             tabs: [
               Tab(icon: Icon(Icons.monetization_on_rounded)),
@@ -32,8 +70,8 @@ class _OfertasState extends State<Ofertas> {
         ),
         body: TabBarView(
           children: [
-            OfertasBusqueda(local: false),
-            OfertasBusqueda(local: true),
+            OfertasBusqueda(key: _offersKey,local: false),
+            OfertasBusqueda(key: _favoriteOffersKey,local: true),
           ],
         ),
         drawer: NavDrawer(
@@ -61,10 +99,13 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
   int _indexOffer = 0;
   bool local;
 
+  TextEditingController _inputFilter = TextEditingController();
+
   @override
   void initState(){
     super.initState();
     _loadOffer();
+
   }
 
   void _loadOffer() async
@@ -78,6 +119,10 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
       offers = offers.union(await Provider.of<AppState>(context, listen: false).getOffersFrom(_indexLocal, _indexOffer));
     }
     setState((){});
+  }
+  void reload() async{
+    offers = {};
+    _loadOffer();
   }
 
   @override

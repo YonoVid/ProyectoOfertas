@@ -66,6 +66,7 @@ class NavDrawer extends Drawer {
                 leading: const Icon(Icons.monetization_on_rounded),
                 onTap: () {
                   openNamed(context, "/ofertas");
+                  Provider.of<AppState>(context, listen: false).tabIndex = 0;
                 },
               ),
               ListTile(
@@ -73,6 +74,7 @@ class NavDrawer extends Drawer {
                 leading: const Icon(Icons.favorite),
                 onTap: () {
                   openNamed(context, "/ofertas");
+                  Provider.of<AppState>(context, listen: false).tabIndex = 1;
                 },
               ),
               const Divider(
