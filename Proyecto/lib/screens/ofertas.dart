@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:provider/provider.dart';
 
-import '../app_state.dart';
+import '../providers/app_state.dart';
+import '../model/offerClass.dart';
 
 class Ofertas extends StatefulWidget {
   const Ofertas({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class _OfertasState extends State<Ofertas> with SingleTickerProviderStateMixin {
   final GlobalKey<_OfertasBusquedaState> _favoriteOffersKey = GlobalKey();
 
   void changeFilter(){
-    Provider.of<AppState>(context, listen: false).stringFilter = _filterController.text.toLowerCase();
+    Provider.of<AppState>(context, listen: false).offerFilter.text = _filterController.text.toLowerCase();
     _favoriteOffersKey.currentState?.reload();
     _offersKey.currentState?.reload();
   }
@@ -41,6 +42,9 @@ class _OfertasState extends State<Ofertas> with SingleTickerProviderStateMixin {
               Expanded(
                 child: Container(
                   child: TextField(
+                    onChanged: (String? filter){
+                      changeFilter();
+                    },
                     controller: _filterController,
                     decoration: InputDecoration(
                         hintStyle: TextStyle(color: Color(Colors.brown[50]!.value)),
@@ -57,8 +61,8 @@ class _OfertasState extends State<Ofertas> with SingleTickerProviderStateMixin {
                 ),
               ),
               IconButton(onPressed: (){
-                changeFilter();
-              }, icon: Icon(Icons.search))
+                Navigator.pushNamed(context, "/filtro_ofertas");
+              }, icon: Icon(Icons.filter_alt_rounded))
             ],
           ),
           bottom: TabBar(
@@ -106,6 +110,7 @@ class _OfertasBusquedaState extends State<OfertasBusqueda> {
     super.initState();
     _loadOffer();
 
+    Provider.of<AppState>(context, listen: false).reloadOffer = reload;
   }
 
   void _loadOffer() async

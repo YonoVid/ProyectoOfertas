@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, UserCredential;
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:geocode/geocode.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as path;
+
+import '../model/localClass.dart';
+import '../model/offerClass.dart';
 
 class AppState extends ChangeNotifier {
   late Future<Database> databaseOffer;
@@ -23,8 +24,16 @@ class AppState extends ChangeNotifier {
   int _tabIndex = 0;
   int get tabIndex => _tabIndex;
   set tabIndex(index) => _tabIndex = index;
-  String _stringFilter = "";
-  set stringFilter(filter) => _stringFilter = filter;
+
+  Map<int, String> _categories = {};
+  Map<int, String> get categories => _categories;
+  Map<int, bool> _stateCategories = {};
+  Map<int, bool> get stateCategories => _stateCategories;
+
+  Filter _offerFilter =
+      Filter(text: "", range: RangeValues(0, 50000), category: {});
+  Filter get offerFilter => _offerFilter;
+  //set offerFilter(filter) => _offerFilter = filter;
 
   StreamSubscription<QuerySnapshot>? _markersSubscription;
   StreamSubscription<QuerySnapshot>? _offersSubscription;
@@ -32,8 +41,11 @@ class AppState extends ChangeNotifier {
   Map<String, Local> get locals => _locals;
 
   Function _overlayData = () {};
+  Function _reloadOffer = (){};
+  Function get reloadOffer => _reloadOffer;
+  set reloadOffer(function) => _reloadOffer = function;
 
-  LatLng _location = LatLng(0.0, 0.0);
+  LatLng _location = const LatLng(0.0, 0.0);
   LatLng get location => _location;
   set location(latlng) => _location = latlng;
 
@@ -61,22 +73,7 @@ class AppState extends ChangeNotifier {
     // Importing 'package:flutter/widgets.dart' is required.
     WidgetsFlutterBinding.ensureInitialized();
     startLoginFlow();
-    databaseOffer = openDatabase(
-      // Set the path to the database. Note: Using the `join` function from the
-      // `path` package is best practice to ensure the path is correctly
-      // constructed for each platform.
-      path.join(await getDatabasesPath(), 'offer_database.db'),
-      onCreate: (db, version) {
-        // Run the CREATE TABLE statement on the database.
-        return db.execute(
-          'CREATE TABLE offer(id TEXT PRIMARY KEY, name TEXT, price INTEGER)',
-        );
-      },
-      version: 1,
-    );
-    for (var offer in await getFavorites()) {
-      favoritesId.add(offer.id);
-    }
+    await startDatabase();
     print("Data from Cloud");
     FirebaseAuth.instance.userChanges().listen((user) {
       if (user != null) {
@@ -111,6 +108,50 @@ class AppState extends ChangeNotifier {
 
       notifyListeners();
     });
+  }
+
+  Future<void> startDatabase() async {
+    databaseOffer = openDatabase(
+      // Set the path to the database. Note: Using the `join` function from the
+      // `path` package is best practice to ensure the path is correctly
+      // constructed for each platform.
+      path.join(await getDatabasesPath(), 'offer_database.db'),
+      onCreate: (db, version) {
+        // Run the CREATE TABLE statement on the database.
+        db.execute(
+          'CREATE TABLE offer(id TEXT PRIMARY KEY, name TEXT, price INTEGER, category TEXT)',
+        );
+        db.execute(
+          'CREATE TABLE category(id INTEGER PRIMARY KEY, name TEXT)',
+        );
+        return db.execute(
+          'CREATE TABLE updates(name TEXT PRIMARY KEY, dateUpdate date)',
+        );
+      },
+      onUpgrade: (db, versionOld, versionNew) {
+        /*if (versionOld == 2) {
+          db.execute(
+            'DROP TABLE IF EXISTS offer',
+          );
+          db.execute(
+            'CREATE TABLE offer(id TEXT PRIMARY KEY, name TEXT, price INTEGER, category TEXT)',
+          );
+        }
+        if (versionOld == 1) {
+          db.execute(
+            'CREATE TABLE category(id INTEGER PRIMARY KEY, name TEXT)',
+          );
+          return db.execute(
+            'CREATE TABLE updates(name TEXT PRIMARY KEY, dateUpdate date)',
+          );
+        }*/
+      },
+      version: 1,
+    );
+    for (var offer in await getFavorites()) {
+      favoritesId.add(offer.id);
+    }
+    getCategories();
   }
 
   void startLoginFlow() {
@@ -211,6 +252,49 @@ class AppState extends ChangeNotifier {
       getOffersOf(local.id);
       notifyListeners();
     });
+  }
+
+  Future<void> getCategories() async {
+    //Obtener referencia de la base de datos
+    final db = await databaseOffer;
+    try {
+      Map<String, dynamic> document = {};
+      await FirebaseFirestore.instance
+          .collection("Datos")
+          .doc("Ofertas")
+          .get()
+          .then((value) => document = (value.data())!);
+      List categories = document['categorias'];
+      for (int i = 1; i < categories.length; i++) {
+        print(categories[i]);
+        _categories[i] = categories[i];
+        _stateCategories[i] = false;
+        await db.insert(
+            'category',
+            {
+              'id': i,
+              'name': categories[i],
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+      print(categories[0]);
+      _categories[0] = categories[0];
+      _stateCategories[0] = false;
+      await db.insert(
+          'category',
+          {
+            'id': 0,
+            'name': categories[0],
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    } catch (e) {
+      print(e.toString());
+      // Petición a base de datos local para obtener categorias
+      final List<Map<String, dynamic>> maps = await db.query('categories');
+      for (var data in maps) {
+        _categories[data['id']] = data['name'];
+      }
+    }
   }
 
   Future<bool> sendLocal(String name) async {
@@ -365,6 +449,7 @@ class AppState extends ChangeNotifier {
           id: document.id,
           name: document.data()['nombre'] as String,
           price: document.data()['precio'],
+          category: document.data()['categoria']
         ));
         //print(document.id);
       }
@@ -400,16 +485,20 @@ class AppState extends ChangeNotifier {
           if (totalOffer >= 50) {
             break;
           }
-          if (_stringFilter != "" &&
-              !(data[e].data()['nombre'] as String)
-                  .toLowerCase()
-                  .contains(_stringFilter)) {
+          if (_offerFilter.text != "" &&
+                  !(data[e].data()['nombre'] as String)
+                      .toLowerCase()
+                      .contains(_offerFilter.text) ||
+              _offerFilter.range.start >= data[e].data()['precio'] ||
+              _offerFilter.range.end <= data[e].data()['precio'] ||
+              !_offerFilter.inCategory(data[e].data()['categoria'])) {
             continue;
           }
           _offers.add(Offer(
             id: data[e].id,
             name: data[e].data()['nombre'] as String,
             price: data[e].data()['precio'],
+            category: data[e].data()['categoria'],
           ));
           //print(data[e].id);
           totalOffer++;
@@ -451,82 +540,29 @@ class AppState extends ChangeNotifier {
 
     // Convertir el mapa en una lista de objetos Offer
     for (var data in maps) {
-      if (_stringFilter != "" &&
-          !(data['name'] as String).toLowerCase().contains(_stringFilter)) {
+      if (_offerFilter.text != "" &&
+          !(data['name'] as String).toLowerCase().contains(_offerFilter.text)
+          ||
+          _offerFilter.range.start >= data['price'] ||
+          _offerFilter.range.end <= data['price'] ||
+          !_offerFilter.inCategory(data['category'])){
         continue;
       }
       offers.add(Offer(
         id: data['id'],
         name: data['name'],
         price: data['price'],
+        category: data['category']
       ));
     }
     return offers;
   }
 }
 
-class Local {
-  Local(
-      {required this.id,
-      required this.name,
-      required this.location,
-      required this.offers});
-  final String id;
-  final String name;
-  final LatLng location;
-  final CollectionReference offers;
-}
-
-/*
-* factory City.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot,
-    SnapshotOptions? options,
-  ) {
-    final data = snapshot.data();
-    return City(
-      name: data?['name'],
-      state: data?['state'],
-      country: data?['country'],
-      capital: data?['capital'],
-      population: data?['population'],
-      regions:
-          data?['regions'] is Iterable ? List.from(data?['regions']) : null,
-    );
-  }
-
-  Map<String, dynamic> toFirestore() {
-    return {
-      if (name != null) "name": name,
-      if (state != null) "state": state,
-      if (country != null) "country": country,
-      if (capital != null) "capital": capital,
-      if (population != null) "population": population,
-      if (regions != null) "regions": regions,
-    };
-  }
-*
-* */
-class Offer {
-  Offer({required this.id, required this.name, required this.price});
-  final String id;
-  final String name;
-  final int price;
-
-  // Mapa de Oferta para almacenar con sqlite. colmunas deben ser nombres
-  // en base de datos
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'price': price,
-    };
-  }
-
-  // ToString para facilitar lectura en consola de los datos.
-  @override
-  String toString() {
-    return 'Offer{id: $id, name: $name, price: $price}';
-  }
+class Offers {
+  Offers({required this.all, required this.favorites});
+  Set<Offer> all;
+  Set<Offer> favorites;
 }
 
 class User {
@@ -534,6 +570,22 @@ class User {
   String uid;
   String name;
   String email;
+}
+
+class Filter {
+  Filter({required this.text, required this.range, required this.category});
+  String text;
+  RangeValues range;
+  Set<String> category;
+
+  bool inCategory(String category)
+  {
+    if(this.category.isEmpty)
+      {
+        return true;
+      }
+    return this.category.contains(category);
+  }
 }
 
 enum ApplicationLoginState {

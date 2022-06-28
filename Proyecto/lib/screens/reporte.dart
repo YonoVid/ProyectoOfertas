@@ -4,7 +4,8 @@ import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:ofertas_flutter/widgets/formbase.dart';
 import 'package:provider/provider.dart';
 
-import '../app_state.dart';
+import '../providers/app_state.dart';
+import '../model/offerClass.dart';
 
 class Reporte extends StatefulWidget {
   const Reporte({Key? key}) : super(key: key);

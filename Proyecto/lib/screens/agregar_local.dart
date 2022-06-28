@@ -4,7 +4,7 @@ import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:ofertas_flutter/widgets/formbase.dart';
 import 'package:provider/provider.dart';
 
-import '../app_state.dart';
+import '../providers/app_state.dart';
 
 class AgregarLocal extends StatefulWidget {
   const AgregarLocal({Key? key}) : super(key: key);

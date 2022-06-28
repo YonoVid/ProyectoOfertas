@@ -5,7 +5,7 @@ import 'package:ofertas_flutter/widgets/formbase.dart';
 import 'package:ofertas_flutter/widgets/labelcheckbox.dart';
 import 'package:provider/provider.dart';
 
-import '../app_state.dart';
+import '../providers/app_state.dart';
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);

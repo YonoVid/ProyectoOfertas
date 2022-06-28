@@ -1,11 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:ofertas_flutter/app_state.dart';
+import 'package:ofertas_flutter/providers/app_state.dart';
 
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+
+import '../model/localClass.dart';
+import '../model/offerClass.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);

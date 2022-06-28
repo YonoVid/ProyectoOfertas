@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ofertas_flutter/screens/agregar_local.dart';
+import 'package:ofertas_flutter/screens/filtro_ofertas.dart';
 import 'package:ofertas_flutter/screens/reporte.dart';
 import 'package:provider/provider.dart';
 
-import 'package:ofertas_flutter/app_state.dart';
+import 'package:ofertas_flutter/providers/app_state.dart';
 import 'package:ofertas_flutter/screens/home.dart';
 import 'package:ofertas_flutter/screens/login.dart';
 import 'package:ofertas_flutter/screens/agregar_oferta.dart';
@@ -24,10 +25,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AppState(),
-      builder: (context, _) => OfertasFlutter(),
-    ),
+      ChangeNotifierProvider(
+        create: (context) => AppState(),
+        builder: (context, _) => OfertasFlutter(),
+      ),
   );
 }
 class OfertasFlutter extends StatelessWidget {
@@ -40,12 +41,13 @@ class OfertasFlutter extends StatelessWidget {
       '/login': (context) => Login(),
       '/register': (context) => Register(),
       '/ofertas': (context) => Ofertas(),
+      '/filtro_ofertas': (context) => FiltroOfertas(),
       '/soporte': (context) => Soporte(),
       '/preguntas': (context) => Preguntas(),
       '/opciones': (context) => Opciones(),
-     '/agregar_local': (context) => AgregarLocal(),
+      '/agregar_local': (context) => AgregarLocal(),
       '/agregar_oferta': (context) => AgregarOferta(),
-     '/reporte': (context) => Reporte(),
+      '/reporte': (context) => Reporte(),
     },
     theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(
