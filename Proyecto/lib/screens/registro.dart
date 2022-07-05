@@ -49,6 +49,7 @@ class _RegisterState extends State<Register> {
                Padding(
                 padding: EdgeInsets.all(10),
                 child: TextField(
+                  maxLength: 30,
                   controller: _inputName,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
@@ -70,6 +71,7 @@ class _RegisterState extends State<Register> {
                 padding: EdgeInsets.all(10),
                 child: TextField(
                   obscureText: true,
+                  maxLength: 16,
                   controller: _inputPassword,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
@@ -82,6 +84,7 @@ class _RegisterState extends State<Register> {
                 padding: EdgeInsets.all(10),
                 child: TextField(
                   obscureText: true,
+                  maxLength: 16,
                   controller: _inputConfirmpassword,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),

@@ -2,7 +2,13 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'
-    show FirebaseAuth, FirebaseAuthException, UserCredential;
+    show
+        AuthCredential,
+        EmailAuthCredential,
+        EmailAuthProvider,
+        FirebaseAuth,
+        FirebaseAuthException,
+        UserCredential;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -42,7 +48,7 @@ class AppState extends ChangeNotifier {
   Map<String, Local> get locals => _locals;
 
   Function _overlayData = () {};
-  Function _reloadOffer = (){};
+  Function _reloadOffer = () {};
   Function get reloadOffer => _reloadOffer;
   set reloadOffer(function) => _reloadOffer = function;
 
@@ -195,6 +201,40 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> changeUsername(String newName) async {
+    try {
+      await FirebaseAuth.instance.currentUser!.updateDisplayName(newName);
+      _user.name = newName;
+      notifyListeners();
+      return true;
+    } on FirebaseAuthException catch (e) {
+      print(e.toString());
+    }
+    return false;
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    bool result = true;
+    try {
+      var user = FirebaseAuth.instance.currentUser;
+      var credential = EmailAuthProvider.credential(
+          email: _user.email, password: oldPassword);
+      // Prompt the user to re-provide their sign-in credentials
+      await user?.reauthenticateWithCredential(credential).then((credential) async {
+        // User re-authenticated.
+        FirebaseAuth.instance.currentUser!.updatePassword(newPassword);
+      }).onError((error, stackTrace) {
+        print("ERROR CHANGE IN PASSWORD::" + error.toString());
+        result = false;
+      });
+    } on FirebaseAuthException catch (e) {
+      print("ERROR GETTING USER::" + e.toString());
+      result = false;
+    }
+    print("OUT:" + result.toString());
+    return result;
+  }
+
   Future<bool> registerAccount(
       String email,
       String displayName,
@@ -211,20 +251,6 @@ class AppState extends ChangeNotifier {
     }
     return false;
   }
-
-  /*Future<bool> registerAccount(
-      String name, String email, String password) async {
-    try {
-      CollectionReference collection =
-          FirebaseFirestore.instance.collection("Cliente");
-      collection.add(
-          {"UID": _uid, "nombre": name, "email": email, "password": password});
-    } catch (e) {
-      print(e.toString());
-      return false;
-    }
-    return true;
-  }*/
 
   void signOut() {
     FirebaseAuth.instance.signOut();
@@ -395,7 +421,8 @@ class AppState extends ChangeNotifier {
     }
 
     LocationData _currentPosition = await location.getLocation();
-    _location = LatLng(_currentPosition.latitude as double, _currentPosition.longitude as double);
+    _location = LatLng(_currentPosition.latitude as double,
+        _currentPosition.longitude as double);
 
     return _currentPosition.latitude.toString() +
         "," +
@@ -448,11 +475,10 @@ class AppState extends ChangeNotifier {
       //Se almacenan las Ofertas en el Set _offers
       for (var document in data) {
         _offers.add(Offer(
-          id: document.id,
-          name: document.data()['nombre'] as String,
-          price: document.data()['precio'],
-          category: document.data()['categoria']
-        ));
+            id: document.id,
+            name: document.data()['nombre'] as String,
+            price: document.data()['precio'],
+            category: document.data()['categoria']));
         //print(document.id);
       }
     } catch (e) {
@@ -543,19 +569,19 @@ class AppState extends ChangeNotifier {
     // Convertir el mapa en una lista de objetos Offer
     for (var data in maps) {
       if (_offerFilter.text != "" &&
-          !(data['name'] as String).toLowerCase().contains(_offerFilter.text)
-          ||
+              !(data['name'] as String)
+                  .toLowerCase()
+                  .contains(_offerFilter.text) ||
           _offerFilter.range.start >= data['price'] ||
           _offerFilter.range.end <= data['price'] ||
-          !_offerFilter.inCategory(data['category'])){
+          !_offerFilter.inCategory(data['category'])) {
         continue;
       }
       offers.add(Offer(
-        id: data['id'],
-        name: data['name'],
-        price: data['price'],
-        category: data['category']
-      ));
+          id: data['id'],
+          name: data['name'],
+          price: data['price'],
+          category: data['category']));
     }
     return offers;
   }
