@@ -38,6 +38,31 @@ class OpcionesLista extends StatefulWidget {
 class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
   final RestorableDouble _discreteValue = RestorableDouble(20);
 
+  Future<void> changeName(context) async{
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('AlertDialog Title'),
+        content: Column(
+          children: [
+            const Text('AlertDialog description'),
+            TextField(),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'Cancel'),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'OK'),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
     registerForRestoration(_discreteValue, 'discrete_value');
@@ -56,14 +81,17 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
         ListOpcion(
           title: 'Prueba opción',
           icon: Icons.person,
+          onTap: changeName,
         ),
         ListOpcion(
           title: 'Prueba opción',
           icon: Icons.location_on_rounded,
+          onTap: (){},
         ),
         ListOpcion(
           title: 'Prueba opción',
           icon: Icons.settings_rounded,
+          onTap: (){},
         ),
         Container(
           color: Colors.brown[100],
@@ -103,40 +131,45 @@ class ListOpcion extends StatelessWidget {
     Key? key,
     required this.icon,
     required this.title,
+    required this.onTap,
   }) : super(key: key);
 
   final IconData icon;
   final String title;
+  final Function onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Container(
-        color: Colors.brown[100],
-        height: MediaQuery.of(context).size.height / 10,
-        margin: EdgeInsets.all(1.0),
-        padding: EdgeInsets.symmetric(horizontal: 30.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              flex: 1,
-              child: Center(
-                child: Icon(icon),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Center(
-                child: Text(
-                  title,
-                  style: TextStyle(fontSize: 16.0),
+      child: InkWell(
+        onTap: () => onTap(context),
+        child: Container(
+          color: Colors.brown[100],
+          height: MediaQuery.of(context).size.height / 10,
+          margin: EdgeInsets.all(1.0),
+          padding: EdgeInsets.symmetric(horizontal: 30.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 1,
+                child: Center(
+                  child: Icon(icon),
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                flex: 3,
+                child: Center(
+                  child: Text(
+                    title,
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

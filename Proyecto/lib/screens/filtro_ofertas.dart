@@ -4,6 +4,7 @@ import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/app_state.dart';
+import '../providers/provider_Classes.dart';
 
 class FiltroOfertas extends StatefulWidget {
   const FiltroOfertas({Key? key}) : super(key: key);

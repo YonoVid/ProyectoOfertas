@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart'
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:ofertas_flutter/providers/provider_Classes.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as path;
 
@@ -326,7 +327,7 @@ class AppState extends ChangeNotifier {
         "UID": _user.uid,
         "nombre": name,
         "precio": int.parse(price),
-        "category": category
+        "categoria": category
       });
       //_offersSelected.add(Offer(id:_uid, name:name,price: int.parse(price)));
     } catch (e) {
@@ -394,6 +395,7 @@ class AppState extends ChangeNotifier {
     }
 
     LocationData _currentPosition = await location.getLocation();
+    _location = LatLng(_currentPosition.latitude as double, _currentPosition.longitude as double);
 
     return _currentPosition.latitude.toString() +
         "," +
@@ -557,41 +559,4 @@ class AppState extends ChangeNotifier {
     }
     return offers;
   }
-}
-
-class Offers {
-  Offers({required this.all, required this.favorites});
-  Set<Offer> all;
-  Set<Offer> favorites;
-}
-
-class User {
-  User({required this.uid, required this.name, required this.email});
-  String uid;
-  String name;
-  String email;
-}
-
-class Filter {
-  Filter({required this.text, required this.range, required this.category});
-  String text;
-  RangeValues range;
-  Set<String> category;
-
-  bool inCategory(String category)
-  {
-    if(this.category.isEmpty)
-      {
-        return true;
-      }
-    return this.category.contains(category);
-  }
-}
-
-enum ApplicationLoginState {
-  loggedOut,
-  notRegistered,
-  emailAddress,
-  register,
-  loggedIn,
 }

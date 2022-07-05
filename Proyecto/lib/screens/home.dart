@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:ofertas_flutter/providers/app_state.dart';
 
@@ -35,7 +33,8 @@ class _HomeState extends State<Home> {
     mapController = controller;
     _setStyle(controller);
 
-    Provider.of<AppState>(context, listen: false).setOverlayFunction(overlayData);
+    Provider.of<AppState>(context, listen: false)
+        .setOverlayFunction(overlayData);
   }
 
   void _setStyle(GoogleMapController controller) async {
@@ -53,12 +52,33 @@ class _HomeState extends State<Home> {
       Provider.of<AppState>(context, listen: false).setLocal(local);
       await Provider.of<AppState>(context, listen: false).getOffersOf(local.id);
     }
-    if(_canAddLocal) setState((){_canAddLocal = false;});
+    if (_canAddLocal)
+      setState(() {
+        _canAddLocal = false;
+      });
     _keyDataOverlay.currentState!.show();
   }
 
   void _hideOverlay() async {
     _keyDataOverlay.currentState!.hide();
+  }
+
+  void _userMarker(AppState appState, LatLng point)
+  {
+    appState.location = point;
+    appState.userMarker(Marker(
+      markerId: const MarkerId("user"),
+      position: point,
+      infoWindow: InfoWindow(
+        title: 'Solicitar nuevo local',
+        onTap: () {},
+      ),
+      onTap: () {},
+      icon: BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueBlue),
+    ));
+    mapController.animateCamera(CameraUpdate.newLatLngZoom(point, 14.0));
+    print(appState.markers.toString());
   }
 
   @override
@@ -70,6 +90,21 @@ class _HomeState extends State<Home> {
           backgroundColor: Colors.indigo[500],
           elevation: 0.0,
           actions: <Widget>[
+            Visibility(
+              visible: !_canAddLocal,
+              child: IconButton(
+                icon: const Icon(Icons.location_on_outlined),
+                tooltip: 'Añadir local',
+                onPressed: () async {
+                  setState(()
+                  {
+                    _canAddLocal = !_canAddLocal;
+                  });
+                  await Provider.of<AppState>(context, listen: false).getLocation();
+                  _userMarker(Provider.of<AppState>(context, listen: false), Provider.of<AppState>(context, listen: false).location);
+                },
+              ),
+            ),
             Visibility(
               visible: _canAddLocal,
               child: IconButton(
@@ -84,38 +119,31 @@ class _HomeState extends State<Home> {
       body: Stack(children: [
         Consumer<AppState>(
           builder: (context, appState, _) => GoogleMap(
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(
-              target: _center,
-              zoom: 11.0,
-            ),
-            markers: appState.markers,
-            mapToolbarEnabled: false,
-            onTap: (LatLng point) {
-              print(point.toString());
-              if (_keyDataOverlay.currentState?.isVisible() as bool) {
-                _hideOverlay();
-              } else {
-                appState.removeUserMarker();
-              }
-              if(_canAddLocal) setState((){_canAddLocal = false;});
-            },
-            onLongPress: (LatLng point) {
-                setState((){_canAddLocal = true;});
-                appState.location = point;
-                appState.userMarker(Marker(
-                  markerId: const MarkerId("user"),
-                  position: point,
-                  infoWindow: InfoWindow(
-                    title: 'Solicitar nuevo local',
-                    onTap: (){},
-                  ),
-                  onTap: () {},
-                  icon:
-                  BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),));
-                print(appState.markers.toString());
-              }
-          ),
+              onMapCreated: _onMapCreated,
+              initialCameraPosition: CameraPosition(
+                target: _center,
+                zoom: 11.0,
+              ),
+              markers: appState.markers,
+              mapToolbarEnabled: false,
+              onTap: (LatLng point) {
+                print(point.toString());
+                if (_keyDataOverlay.currentState?.isVisible() as bool) {
+                  _hideOverlay();
+                } else {
+                  appState.removeUserMarker();
+                }
+                if (_canAddLocal)
+                  setState(() {
+                    _canAddLocal = false;
+                  });
+              },
+              onLongPress: (LatLng point) {
+                setState(() {
+                  _canAddLocal = true;
+                });
+                _userMarker(appState, point);
+              }),
         ),
         DataOverlay(
           key: _keyDataOverlay,
@@ -228,57 +256,60 @@ class _DataOverlayState extends State<DataOverlay> {
                 color: Colors.indigo[500],
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 10.0),
-                  child: Text(
-                    (_local?.name == null) ? "" : _local?.name as String,
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.brown[50],
-                    ),
+                      vertical: 0.0, horizontal: 10.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: Text(
+                          (_local?.name == null) ? "" : _local?.name as String,
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.brown[50],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: PopupMenuButton<int>(
+                            onSelected: (value){
+                              if( value == 1) Navigator.pushNamed(context, "/agregar_oferta");
+                            },
+                            itemBuilder: (context) => [
+                              // popupmenu item 1
+                              PopupMenuItem(
+                                value: 1,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.add_circle_outline_rounded,color: Colors.indigo[500],),
+                                    SizedBox(
+                                      // sized box with width 10
+                                      width: 5,
+                                    ),
+                                    Text("Agregar oferta")
+                                  ],
+                                ),
+                              ),
+                            ]),
+                      )
+                    ],
                   ),
                 ),
               )),
           Positioned(
             top: 20.0,
             left: 20.0,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _visibleExtra = !_visibleExtra;
-                });
-              },
-              child: Container(
-                height: 100.0,
-                width: 100.0,
-                decoration: BoxDecoration(
-                  color: Colors.brown[100],
-                  border: Border.all(width: 2.0, color: Colors.indigo),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Image.asset('assets/P18.png'),
+            child: Container(
+              height: 100.0,
+              width: 100.0,
+              decoration: BoxDecoration(
+                color: Colors.brown[100],
+                border: Border.all(width: 2.0, color: Colors.indigo),
+                borderRadius: BorderRadius.circular(100),
               ),
-            ),
-          ),
-          Visibility(
-            visible: _visibleExtra,
-            child: Positioned(
-              top: 0.0,
-              left: 20.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.indigo[500],
-                  shape: CircleBorder(),
-                ),
-                child: Icon(
-                  Icons.add,
-                  color: Colors.brown[50],
-                ),
-                onPressed: () {
-                  Navigator.pushNamed(context, "/agregar_oferta");
-                },
-              ),
+              child: Image.asset('assets/P18.png'),
             ),
           ),
         ]),
