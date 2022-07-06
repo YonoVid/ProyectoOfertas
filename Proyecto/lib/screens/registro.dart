@@ -5,7 +5,7 @@ import 'package:ofertas_flutter/widgets/formbase.dart';
 import 'package:ofertas_flutter/widgets/labelcheckbox.dart';
 import 'package:provider/provider.dart';
 
-import '../app_state.dart';
+import '../providers/app_state.dart';
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
@@ -49,6 +49,7 @@ class _RegisterState extends State<Register> {
                Padding(
                 padding: EdgeInsets.all(10),
                 child: TextField(
+                  maxLength: 30,
                   controller: _inputName,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
@@ -70,11 +71,12 @@ class _RegisterState extends State<Register> {
                 padding: EdgeInsets.all(10),
                 child: TextField(
                   obscureText: true,
+                  maxLength: 16,
                   controller: _inputPassword,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       fillColor: Colors.white,
-                      labelText: 'Constraseña',
+                      labelText: 'Contraseña',
                       hintText: 'Mínimo 8 caracteres y un símbolo'),
                 ),
               ),
@@ -82,6 +84,7 @@ class _RegisterState extends State<Register> {
                 padding: EdgeInsets.all(10),
                 child: TextField(
                   obscureText: true,
+                  maxLength: 16,
                   controller: _inputConfirmpassword,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),

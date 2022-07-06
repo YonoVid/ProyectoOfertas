@@ -5,7 +5,7 @@ import 'package:ofertas_flutter/widgets/labelcheckbox.dart';
 import 'package:ofertas_flutter/widgets/formbase.dart';
 import 'package:provider/provider.dart';
 
-import '../app_state.dart';
+import '../providers/app_state.dart';
 
 class Login extends StatefulWidget {
   Login({Key? key}) : super(key: key);
@@ -74,7 +74,7 @@ class _LoginState extends State<Login> {
                         border: OutlineInputBorder(),
                         fillColor: Colors.white,
                         labelText: 'Contraseña',
-                        hintText: 'Enter your secure password'),
+                        hintText: 'Ingresa tu contraseña'),
                   ),
                 ),
                 Row(

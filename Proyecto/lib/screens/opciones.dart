@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/app_state.dart';
 
 class Opciones extends StatefulWidget {
   const Opciones({Key? key}) : super(key: key);
@@ -37,6 +40,156 @@ class OpcionesLista extends StatefulWidget {
 
 class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
   final RestorableDouble _discreteValue = RestorableDouble(20);
+  TextEditingController _inputController0 = TextEditingController();
+  TextEditingController _inputController1 = TextEditingController();
+  TextEditingController _inputController2 = TextEditingController();
+
+  void msg(String msg) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+    ));
+  }
+
+  Future<void> changeName(context) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Elegir un nuevo nombre de usuario'),
+        content: IntrinsicHeight(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text('Nombre actual: \n' +
+                    (Provider.of<AppState>(context, listen: false).user.name)),
+              ),
+              TextField(
+                controller: _inputController0,
+                maxLength: 30,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  fillColor: Colors.white,
+                  labelText: 'Nuevo nombre de usuario',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _inputController0.clear();
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_inputController0.text.length >= 6) {
+                Navigator.pop(context);
+                Provider.of<AppState>(context, listen: false)
+                    .changeUsername(_inputController0.text);
+                _inputController0.clear();
+                msg("¡Nombre de usuaro ha sido cambiada exitosamente!");
+              }
+              msg("Nombre debe tener un mínimo 6 caracteres");
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> changePassword(context) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Elegir una nueva contraseña'),
+        content: SingleChildScrollView(
+          child: IntrinsicHeight(
+            child: Column(
+              children: [
+                TextField(
+                  controller: _inputController0,
+                  maxLength: 16,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    fillColor: Colors.white,
+                    labelText: 'Contraseña actual',
+                  ),
+                ),
+                TextField(
+                  controller: _inputController1,
+                  maxLength: 16,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    fillColor: Colors.white,
+                    labelText: 'Nueva contraseña',
+                  ),
+                ),
+                TextField(
+                  controller: _inputController2,
+                  maxLength: 16,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    fillColor: Colors.white,
+                    labelText: 'Repetir nueva contraseña',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              _inputController0.clear();
+              _inputController1.clear();
+              _inputController2.clear();
+              Navigator.pop(context, "");
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (_inputController0.text != "" &&
+                  _inputController1.text != "" &&
+                  _inputController2.text != "") {
+                //if (_inputPassword == _inputConfirmpassword) {
+                if (_inputController1.text.length >= 6) {
+                  if (_inputController1.text == _inputController2.text) {
+                    bool test =
+                        await Provider.of<AppState>(context, listen: false)
+                            .changePassword(
+                                _inputController0.text, _inputController1.text);
+                    print("test: " + test.toString());
+                    if (test) {
+                      msg("¡La contraseña ha sido cambiada exitosamente!");
+                      Navigator.pop(context);
+                      _inputController0.clear();
+                      _inputController1.clear();
+                      _inputController2.clear();
+                    } else {
+                      msg("Ocurrio un error al intentar cambiar la contraseña");
+                    }
+                  } else {
+                    msg("Las contraseñas no coinciden");
+                  }
+                } else {
+                  msg("Las contraseña debe tener por lo menos 6 caracteres");
+                }
+              } else {
+                msg("Se deben completar todos los campos");
+              }
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
@@ -54,16 +207,19 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
     return ListView(
       children: [
         ListOpcion(
-          title: 'Prueba opción',
+          title: 'Cambiar nombre de usuario',
           icon: Icons.person,
+          onTap: changeName,
         ),
         ListOpcion(
-          title: 'Prueba opción',
-          icon: Icons.location_on_rounded,
+          title: 'Cambiar contraseña',
+          icon: Icons.security_update_outlined,
+          onTap: changePassword,
         ),
-        ListOpcion(
+        /*ListOpcion(
           title: 'Prueba opción',
           icon: Icons.settings_rounded,
+          onTap: (){},
         ),
         Container(
           color: Colors.brown[100],
@@ -88,7 +244,7 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
               Text("Distancia de búsqueda"),
             ],
           ),
-        ),
+        ),*/
       ],
     );
   }
@@ -103,40 +259,47 @@ class ListOpcion extends StatelessWidget {
     Key? key,
     required this.icon,
     required this.title,
+    required this.onTap,
   }) : super(key: key);
 
   final IconData icon;
   final String title;
+  final Function onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Container(
-        color: Colors.brown[100],
-        height: MediaQuery.of(context).size.height / 10,
-        margin: EdgeInsets.all(1.0),
-        padding: EdgeInsets.symmetric(horizontal: 30.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              flex: 1,
-              child: Center(
-                child: Icon(icon),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Center(
-                child: Text(
-                  title,
-                  style: TextStyle(fontSize: 16.0),
+      child: InkWell(
+        onTap: () async {
+          await onTap(context);
+        },
+        child: Container(
+          color: Colors.brown[100],
+          height: MediaQuery.of(context).size.height / 10,
+          margin: EdgeInsets.all(1.0),
+          padding: EdgeInsets.symmetric(horizontal: 30.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 1,
+                child: Center(
+                  child: Icon(icon),
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                flex: 3,
+                child: Center(
+                  child: Text(
+                    title,
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

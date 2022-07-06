@@ -1,11 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:ofertas_flutter/app_state.dart';
+import 'package:ofertas_flutter/providers/app_state.dart';
 
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+
+import '../model/localClass.dart';
+import '../model/offerClass.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -25,9 +26,15 @@ class _HomeState extends State<Home> {
 
   final LatLng _center = const LatLng(-33.45694, -70.64827);
 
+  Set<Marker> _markers = {};
+  bool _canAddLocal = false;
+
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     _setStyle(controller);
+
+    Provider.of<AppState>(context, listen: false)
+        .setOverlayFunction(overlayData);
   }
 
   void _setStyle(GoogleMapController controller) async {
@@ -41,11 +48,14 @@ class _HomeState extends State<Home> {
     mapController
         .animateCamera(CameraUpdate.newLatLngZoom(local.location, 14.0));
     print(local.id != Provider.of<AppState>(context, listen: false).local?.id);
-    if(local.id != Provider.of<AppState>(context, listen: false).local?.id){
-
+    if (local.id != Provider.of<AppState>(context, listen: false).local?.id) {
       Provider.of<AppState>(context, listen: false).setLocal(local);
       await Provider.of<AppState>(context, listen: false).getOffersOf(local.id);
     }
+    if (_canAddLocal)
+      setState(() {
+        _canAddLocal = false;
+      });
     _keyDataOverlay.currentState!.show();
   }
 
@@ -53,26 +63,87 @@ class _HomeState extends State<Home> {
     _keyDataOverlay.currentState!.hide();
   }
 
+  void _userMarker(AppState appState, LatLng point)
+  {
+    appState.location = point;
+    appState.userMarker(Marker(
+      markerId: const MarkerId("user"),
+      position: point,
+      infoWindow: InfoWindow(
+        title: 'Solicitar nuevo local',
+        onTap: () {},
+      ),
+      onTap: () {},
+      icon: BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueBlue),
+    ));
+    mapController.animateCamera(CameraUpdate.newLatLngZoom(point, 14.0));
+    print(appState.markers.toString());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("OFERTAS"),
-        centerTitle: true,
-        backgroundColor: Colors.indigo[500],
-        elevation: 0.0,
-      ),
+          title: Text("OFERTAS"),
+          centerTitle: true,
+          backgroundColor: Colors.indigo[500],
+          elevation: 0.0,
+          actions: <Widget>[
+            Visibility(
+              visible: !_canAddLocal,
+              child: IconButton(
+                icon: const Icon(Icons.location_on_outlined),
+                tooltip: 'Añadir local',
+                onPressed: () async {
+                  setState(()
+                  {
+                    _canAddLocal = !_canAddLocal;
+                  });
+                  await Provider.of<AppState>(context, listen: false).getLocation();
+                  _userMarker(Provider.of<AppState>(context, listen: false), Provider.of<AppState>(context, listen: false).location);
+                },
+              ),
+            ),
+            Visibility(
+              visible: _canAddLocal,
+              child: IconButton(
+                icon: const Icon(Icons.add_business_outlined),
+                tooltip: 'Añadir local',
+                onPressed: () {
+                  Navigator.pushNamed(context, "/agregar_local");
+                },
+              ),
+            ),
+          ]),
       body: Stack(children: [
         Consumer<AppState>(
           builder: (context, appState, _) => GoogleMap(
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(
-              target: _center,
-              zoom: 11.0,
-            ),
-            markers: appState.getMarkers(overlayData),
-            onTap: (context) => {_hideOverlay()},
-          ),
+              onMapCreated: _onMapCreated,
+              initialCameraPosition: CameraPosition(
+                target: _center,
+                zoom: 11.0,
+              ),
+              markers: appState.markers,
+              mapToolbarEnabled: false,
+              onTap: (LatLng point) {
+                print(point.toString());
+                if (_keyDataOverlay.currentState?.isVisible() as bool) {
+                  _hideOverlay();
+                } else {
+                  appState.removeUserMarker();
+                }
+                if (_canAddLocal)
+                  setState(() {
+                    _canAddLocal = false;
+                  });
+              },
+              onLongPress: (LatLng point) {
+                setState(() {
+                  _canAddLocal = true;
+                });
+                _userMarker(appState, point);
+              }),
         ),
         DataOverlay(
           key: _keyDataOverlay,
@@ -132,6 +203,8 @@ class _DataOverlayState extends State<DataOverlay> {
     });
   }
 
+  bool isVisible() => _visibleState;
+
   void goToLocalPage() {
     //Provider.of<AppState>(context, listen: false).setLocal(_local, _offers);
   }
@@ -143,8 +216,7 @@ class _DataOverlayState extends State<DataOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    Local? _local = Provider.of<AppState>(context, listen: false)
-        .local;
+    Local? _local = Provider.of<AppState>(context, listen: false).local;
     return Visibility(
       visible: _visibleState,
       child: Positioned(
@@ -184,55 +256,60 @@ class _DataOverlayState extends State<DataOverlay> {
                 color: Colors.indigo[500],
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 10.0),
-                  child: Text(
-                    (_local?.name == null)?"":_local?.name as String,
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.brown[50],
-                    ),
+                      vertical: 0.0, horizontal: 10.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: Text(
+                          (_local?.name == null) ? "" : _local?.name as String,
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.brown[50],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: PopupMenuButton<int>(
+                            onSelected: (value){
+                              if( value == 1) Navigator.pushNamed(context, "/agregar_oferta");
+                            },
+                            itemBuilder: (context) => [
+                              // popupmenu item 1
+                              PopupMenuItem(
+                                value: 1,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.add_circle_outline_rounded,color: Colors.indigo[500],),
+                                    SizedBox(
+                                      // sized box with width 10
+                                      width: 5,
+                                    ),
+                                    Text("Agregar oferta")
+                                  ],
+                                ),
+                              ),
+                            ]),
+                      )
+                    ],
                   ),
                 ),
               )),
           Positioned(
             top: 20.0,
             left: 20.0,
-            child: GestureDetector(
-              onTap: () {
-                setState((){_visibleExtra = !_visibleExtra;});
-              },
-              child: Container(
-                height: 100.0,
-                width: 100.0,
-                decoration: BoxDecoration(
-                  color: Colors.brown[100],
-                  border: Border.all(width: 2.0, color: Colors.indigo),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Image.asset('assets/P18.png'),
+            child: Container(
+              height: 100.0,
+              width: 100.0,
+              decoration: BoxDecoration(
+                color: Colors.brown[100],
+                border: Border.all(width: 2.0, color: Colors.indigo),
+                borderRadius: BorderRadius.circular(100),
               ),
-            ),
-          ),
-          Visibility(
-            visible: _visibleExtra,
-            child: Positioned(
-              top: 0.0,
-              left: 20.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.indigo[500],
-                  shape: CircleBorder(),
-                ),
-                child: Icon(
-                  Icons.add,
-                  color: Colors.brown[50],
-                ),
-                onPressed: () {
-                  Navigator.pushNamed(context, "/agregar_oferta");
-                },
-              ),
+              child: Image.asset('assets/P18.png'),
             ),
           ),
         ]),
@@ -241,11 +318,15 @@ class _DataOverlayState extends State<DataOverlay> {
   }
 }
 
-class DataOffer extends StatelessWidget {
-  const DataOffer({Key? key, required this.offer}) : super(key: key);
+class DataOffer extends StatefulWidget {
+  DataOffer({Key? key, required this.offer}) : super(key: key);
 
   final Offer offer;
+  @override
+  State<DataOffer> createState() => _DataOfferState();
+}
 
+class _DataOfferState extends State<DataOffer> {
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -263,11 +344,11 @@ class DataOffer extends StatelessWidget {
                   style: TextStyle(color: Colors.brown[50]),
                   child: ListTile(
                     title: Text(
-                      offer.name,
+                      widget.offer.name,
                       style: TextStyle(color: Colors.brown[50]),
                     ),
                     subtitle: Text(
-                      "\$" + offer.price.toString(),
+                      "\$" + widget.offer.price.toString(),
                       style: TextStyle(color: Colors.brown[50]),
                     ),
                     style: ListTileStyle.list,
@@ -278,15 +359,25 @@ class DataOffer extends StatelessWidget {
             Column(
               children: [
                 Expanded(
-                    child: IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.favorite_rounded,
-                        ))),
+                    child: Consumer<AppState>(
+                  builder: (context, appState, _) => IconButton(
+                      onPressed: () {
+                        //setState((){print('Prefavorite:$favorite');favorite = !favorite;print('Postfavorite:$favorite');});
+                        Provider.of<AppState>(context, listen: false)
+                            .saveFavorite(widget.offer);
+                      },
+                      icon: Icon(
+                        Icons.favorite_rounded,
+                        color: (appState.favoritesId.contains(widget.offer.id))
+                            ? Colors.redAccent
+                            : Colors.brown[50],
+                      )),
+                )),
                 Expanded(
                     child: IconButton(
                   onPressed: () {
-                    Provider.of<AppState>(context, listen: false).offerSelected = offer;
+                    Provider.of<AppState>(context, listen: false)
+                        .offerSelected = widget.offer;
                     Navigator.pushNamed(context, "/reporte");
                   },
                   icon: Icon(Icons.error_rounded),

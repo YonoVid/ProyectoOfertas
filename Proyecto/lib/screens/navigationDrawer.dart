@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../app_state.dart';
+import '../providers/app_state.dart';
 
 // Press the Navigation Drawer button to the left of AppBar to show
 // a simple Drawer with two items.
@@ -66,6 +66,7 @@ class NavDrawer extends Drawer {
                 leading: const Icon(Icons.monetization_on_rounded),
                 onTap: () {
                   openNamed(context, "/ofertas");
+                  Provider.of<AppState>(context, listen: false).tabIndex = 0;
                 },
               ),
               ListTile(
@@ -73,6 +74,7 @@ class NavDrawer extends Drawer {
                 leading: const Icon(Icons.favorite),
                 onTap: () {
                   openNamed(context, "/ofertas");
+                  Provider.of<AppState>(context, listen: false).tabIndex = 1;
                 },
               ),
               const Divider(
