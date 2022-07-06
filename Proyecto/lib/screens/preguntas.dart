@@ -41,7 +41,7 @@ class Preguntas extends StatelessWidget {
           PreguntaCard(
             question: '¿Como Reportar una Oferta Sospechosa?',
             answer: ' Si usted ve una oferta sospechosa debe presionar el botón de exclamación que esta a la derecha.'
-                'Escoja la razón del reporte junto con su comentario del porque le resulta sospechosa.',
+                'Escoja la razón del reporte junto con su comentario del porque la oferta le resulta sospechosa.',
             imagen: Image.asset('assets/Reportar.png'),
           ),
           PreguntaCard(
