@@ -4,6 +4,7 @@ import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:ofertas_flutter/widgets/formbase.dart';
 import 'package:provider/provider.dart';
 
+import '../model/offerClass.dart';
 import '../providers/app_state.dart';
 
 class AgregarOferta extends StatefulWidget {
@@ -15,6 +16,7 @@ class AgregarOferta extends StatefulWidget {
 
 class _AgregarOfertaState extends State<AgregarOferta> {
   String _dropdownValue = 'Tipo de producto';
+  String _dropDownCategoryDefault = "Tipo de producto";
   final List<String> _items = <String>[
     'Tipo de producto',
     'Frutas',
@@ -29,7 +31,7 @@ class _AgregarOfertaState extends State<AgregarOferta> {
   final TextEditingController _inputName = TextEditingController();
   final TextEditingController _inputPrice = TextEditingController();
 
-  void msg(String msg){
+  void msg(String msg) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
@@ -65,33 +67,44 @@ class _AgregarOfertaState extends State<AgregarOferta> {
               Container(
                 color: Colors.brown[50],
                 margin: EdgeInsets.symmetric(vertical: 15.0),
-                child: DropdownButton<String>(
-                  value: _dropdownValue,
-                  icon: const Icon(Icons.arrow_downward),
-                  dropdownColor: Colors.brown[50],
-                  elevation: 16,
-                  style: const TextStyle(fontSize: 16.0, color: Colors.indigo),
-                  underline: Container(
-                    height: 2,
-                    color: Colors.indigo,
+                child: Consumer<AppState>(
+                  builder: (context, appState, _) => DropdownButton<String>(
+                    value: _dropdownValue,
+                    icon: const Icon(Icons.arrow_downward),
+                    dropdownColor: Colors.brown[50],
+                    elevation: 16,
+                    style:
+                        const TextStyle(fontSize: 16.0, color: Colors.indigo),
+                    underline: Container(
+                      height: 2,
+                      color: Colors.indigo,
+                    ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _dropdownValue = newValue!;
+                      });
+                    },
+                    items: [
+                          DropdownMenuItem<String>(
+                            value: _dropDownCategoryDefault,
+                            child: Text(_dropDownCategoryDefault),
+                          )
+                        ] +
+                        appState.categories.values
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
                   ),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _dropdownValue = newValue!;
-                    });
-                  },
-                  items: _items.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: TextField(
                   controller: _inputName,
+                  maxLength: 30,
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Nombre de producto',
@@ -106,7 +119,7 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Precio del producto',
-                      hintText: 'Ejemplo: 1.000'),
+                      hintText: 'Ejemplo: 1000'),
                 ),
               ),
               Container(
@@ -117,16 +130,18 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                     borderRadius: BorderRadius.circular(20)),
                 child: TextButton(
                   onPressed: () async {
-                    if (_items[0] != _dropdownValue && _inputName.text != "" && _inputPrice.text != "") {
+                    if (_items[0] != _dropdownValue &&
+                        _inputName.text != "" &&
+                        _inputPrice.text != "") {
                       if (await Provider.of<AppState>(context, listen: false)
-                          .sendOffer(_inputName.text, _inputPrice.text, _dropdownValue)) {
+                          .sendOffer(Offer(id: "-1", name:_inputName.text, price: int.parse(_inputPrice.text),
+                              category: _dropdownValue))) {
                         Navigator.pop(context);
                         msg("¡La oferta ha sido enviado exitosamente!");
                       } else {
                         msg("Ha ocurrido un error al enviar la oferta");
                       }
-                    }
-                    else{
+                    } else {
                       msg("Se debe completar el campo de nombre y precio");
                     }
                   },

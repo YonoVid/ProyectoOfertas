@@ -131,10 +131,6 @@ class _SoporteState extends State<Soporte> {
           ),
         ),
       ),
-      drawer: NavDrawer(
-        username: 'Nombre de usuario',
-        email: 'Correo',
-      ),
     );
   }
 }

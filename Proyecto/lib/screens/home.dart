@@ -34,7 +34,9 @@ class _HomeState extends State<Home> {
     _setStyle(controller);
 
     Provider.of<AppState>(context, listen: false)
-        .setOverlayFunction(overlayData);
+        .setOverlayFunction(_overlayData);
+    Provider.of<AppState>(context, listen: false)
+        .setHideOverlayFunction(_hideOverlay);
   }
 
   void _setStyle(GoogleMapController controller) async {
@@ -43,7 +45,7 @@ class _HomeState extends State<Home> {
     controller.setMapStyle(value);
   }
 
-  void overlayData(Local local) async {
+  void _overlayData(Local local) async {
     print(local.id + "|" + local.name + "|" + local.location.toString());
     mapController
         .animateCamera(CameraUpdate.newLatLngZoom(local.location, 14.0));
@@ -51,6 +53,8 @@ class _HomeState extends State<Home> {
     if (local.id != Provider.of<AppState>(context, listen: false).local?.id) {
       Provider.of<AppState>(context, listen: false).setLocal(local);
       await Provider.of<AppState>(context, listen: false).getOffersOf(local.id);
+
+      _keyDataOverlay.currentState!.show();
     }
     if (_canAddLocal)
       setState(() {
@@ -305,11 +309,11 @@ class _DataOverlayState extends State<DataOverlay> {
               height: 100.0,
               width: 100.0,
               decoration: BoxDecoration(
+                image: DecorationImage(fit: BoxFit.fill, image: AssetImage('assets/ofertas.png')),
                 color: Colors.brown[100],
                 border: Border.all(width: 2.0, color: Colors.indigo),
                 borderRadius: BorderRadius.circular(100),
               ),
-              child: Image.asset('assets/P18.png'),
             ),
           ),
         ]),

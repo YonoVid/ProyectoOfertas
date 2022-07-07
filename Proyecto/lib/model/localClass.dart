@@ -8,7 +8,7 @@ class Local {
       required this.location,
       required this.offers});
   final String id;
-  final String name;
+  String name;
   final LatLng location;
   final CollectionReference offers;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ofertas_flutter/screens/agregar_local.dart';
 import 'package:ofertas_flutter/screens/filtro_ofertas.dart';
+import 'package:ofertas_flutter/screens/manejo_local.dart';
 import 'package:ofertas_flutter/screens/reporte.dart';
 import 'package:provider/provider.dart';
 
@@ -42,6 +43,7 @@ class OfertasFlutter extends StatelessWidget {
       '/register': (context) => Register(),
       '/ofertas': (context) => Ofertas(),
       '/filtro_ofertas': (context) => FiltroOfertas(),
+      '/manejo_local': (context) => ManejoLocal(),
       '/soporte': (context) => Soporte(),
       '/preguntas': (context) => Preguntas(),
       '/opciones': (context) => Opciones(),
