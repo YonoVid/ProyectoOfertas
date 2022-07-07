@@ -92,7 +92,7 @@ class NavDrawer extends Drawer {
                         appState.hideData();
                         appState.setLocal(appState.userLocal as Local);
                         appState.getOffersOf((appState.userLocal as Local).id);
-                        openNamed(context, '/manejo_local');
+                        openNamed(context, '/gestionar_local');
                       },
                     );
                   } else {
@@ -124,6 +124,9 @@ class NavDrawer extends Drawer {
                 title: Text("Cerrar sesión"),
                 leading: const Icon(Icons.person_pin),
                 onTap: () {
+                  Navigator.pop(context);
+                  Navigator.popUntil(
+                      context, (Route<dynamic> route) => route.isFirst);
                   Provider.of<AppState>(context, listen: false).signOut();
                   openNamed(context, '/login');
                 },

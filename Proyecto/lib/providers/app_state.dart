@@ -89,6 +89,7 @@ class AppState extends ChangeNotifier {
         _loginState = ApplicationLoginState.loggedIn;
         await getUserLocal();
       } else {
+        _userLocal = null;
         _loginState = ApplicationLoginState.loggedOut;
       }
       notifyListeners();
