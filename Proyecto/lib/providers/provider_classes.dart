@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ofertas_flutter/model/offerClass.dart';
+import 'package:ofertas_flutter/model/offer_class.dart';
 
-class User {
-  User({required this.uid, required this.name, required this.email});
+class AppUser {
+  AppUser({required this.uid, required this.name, required this.email});
   String uid;
   String name;
   String email;

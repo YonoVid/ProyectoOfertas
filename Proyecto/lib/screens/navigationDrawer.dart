@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../model/localClass.dart';
+import '../model/local_class.dart';
 import '../providers/app_state.dart';
 
 // Press the Navigation Drawer button to the left of AppBar to show

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:provider/provider.dart';
 
-import '../model/localClass.dart';
-import '../model/offerClass.dart';
+import '../model/local_class.dart';
+import '../model/offer_class.dart';
 import '../providers/app_state.dart';
 import '../widgets/formbase.dart';
 

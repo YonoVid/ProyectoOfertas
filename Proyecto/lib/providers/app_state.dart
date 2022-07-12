@@ -6,21 +6,18 @@ import 'package:firebase_auth/firebase_auth.dart'
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:ofertas_flutter/providers/provider_Classes.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart' as path;
+import 'package:ofertas_flutter/providers/provider_classes.dart';
+import 'package:ofertas_flutter/providers/sql_database.dart';
 
-import '../model/localClass.dart';
-import '../model/offerClass.dart';
+import '../model/local_class.dart';
+import '../model/offer_class.dart';
+import 'firebase_database.dart';
 
 class AppState extends ChangeNotifier {
-  late Future<Database> databaseOffer;
+  late SqlDatabase sqlDatabase;
+  FirebaseDatabase? firebaseDatabase;
 
-  ApplicationLoginState _loginState = ApplicationLoginState.loggedOut;
-  ApplicationLoginState get loginState => _loginState;
-
-  User _user = User(uid: "anonymous", name: "anonymous", email: "");
-  User get user => _user;
+  AppUser get user => firebaseDatabase!.user;
 
   int _tabIndex = 0;
   int get tabIndex => _tabIndex;
@@ -36,8 +33,6 @@ class AppState extends ChangeNotifier {
   Filter get offerFilter => _offerFilter;
   //set offerFilter(filter) => _offerFilter = filter;
 
-  StreamSubscription<QuerySnapshot>? _markersSubscription;
-  StreamSubscription<QuerySnapshot>? _offersSubscription;
   Map<String, Local> _locals = <String, Local>{};
   Map<String, Local> get locals => _locals;
 
@@ -52,8 +47,7 @@ class AppState extends ChangeNotifier {
   LatLng get location => _location;
   set location(latlng) => _location = latlng;
 
-  Local? _userLocal = null;
-  Local? get userLocal => _userLocal;
+  Local? get userLocal => firebaseDatabase?.userLocal;
 
   Local? _localSelected = null;
   Local? get local => _localSelected;
@@ -78,93 +72,21 @@ class AppState extends ChangeNotifier {
     // Avoid errors caused by flutter upgrade.
     // Importing 'package:flutter/widgets.dart' is required.
     WidgetsFlutterBinding.ensureInitialized();
-    startLoginFlow();
+    //Iniciar flujo de base de datos local y remoto
     await startDatabase();
     print("Data from Cloud");
-    FirebaseAuth.instance.userChanges().listen((user) async {
-      if (user != null) {
-        _user.name = (user.displayName == null) ? "user" : user.displayName!;
-        _user.email = (user.email == null) ? "" : user.email!;
-        _user.uid = user.uid;
-        _loginState = ApplicationLoginState.loggedIn;
-        await getUserLocal();
-      } else {
-        _userLocal = null;
-        _loginState = ApplicationLoginState.loggedOut;
-      }
-      notifyListeners();
-    });
-    _markersSubscription = FirebaseFirestore.instance
-        .collection('Local')
-        .snapshots()
-        .listen((snapshot) {
-      _locals.clear();
-      _markers.clear();
-      for (final document in snapshot.docs) {
-        print("Getting data from Cloud");
-        GeoPoint geoPoint = document.data()['ubicacion'];
-        List<Offer> offers = <Offer>[];
-        //Se obtienen los datos de los Locales
-        _locals[document.id] = Local(
-          id: document.id,
-          name: document.data()['nombre'] as String,
-          location: LatLng(geoPoint.latitude, geoPoint.longitude),
-          offers: document.reference.collection('Oferta'),
-        );
-        getMarkers(_overlayData);
-      }
-
-      notifyListeners();
-    });
+    firebaseDatabase = FirebaseDatabase(notifyListeners, getMarkers);
+    await firebaseDatabase!.init();
   }
 
   Future<void> startDatabase() async {
-    databaseOffer = openDatabase(
-      // Set the path to the database. Note: Using the `join` function from the
-      // `path` package is best practice to ensure the path is correctly
-      // constructed for each platform.
-      path.join(await getDatabasesPath(), 'offer_database.db'),
-      onCreate: (db, version) {
-        // Run the CREATE TABLE statement on the database.
-        db.execute(
-          'CREATE TABLE offer(id TEXT PRIMARY KEY, name TEXT, price INTEGER, category TEXT)',
-        );
-        db.execute(
-          'CREATE TABLE category(id INTEGER PRIMARY KEY, name TEXT)',
-        );
-        return db.execute(
-          'CREATE TABLE updates(name TEXT PRIMARY KEY, dateUpdate date)',
-        );
-      },
-      onUpgrade: (db, versionOld, versionNew) {
-        /*if (versionOld == 2) {
-          db.execute(
-            'DROP TABLE IF EXISTS offer',
-          );
-          db.execute(
-            'CREATE TABLE offer(id TEXT PRIMARY KEY, name TEXT, price INTEGER, category TEXT)',
-          );
-        }
-        if (versionOld == 1) {
-          db.execute(
-            'CREATE TABLE category(id INTEGER PRIMARY KEY, name TEXT)',
-          );
-          return db.execute(
-            'CREATE TABLE updates(name TEXT PRIMARY KEY, dateUpdate date)',
-          );
-        }*/
-      },
-      version: 1,
-    );
+    //Se inicia funcionalidad de base de datos local
+    sqlDatabase = SqlDatabase();
+    await sqlDatabase.init();
     for (var offer in await getFavorites()) {
       favoritesId.add(offer.id);
     }
     getCategories();
-  }
-
-  void startLoginFlow() {
-    _loginState = ApplicationLoginState.emailAddress;
-    notifyListeners();
   }
 
   Future<void> signInWithEmailAndPassword(
@@ -172,86 +94,15 @@ class AppState extends ChangeNotifier {
     String password,
     void Function(FirebaseAuthException e) errorCallback,
   ) async {
-    try {
-      print("Login in with user:" + email + "|password:" + password);
-      var methods =
-          await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
-      for (var value in methods) {
-        print(value);
-      }
-      if (methods.contains('password')) {
-        print("Login method to server");
-        UserCredential user =
-            await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        print("Login succesfull");
-        print(ApplicationLoginState);
-      } else {
-        _loginState = ApplicationLoginState.notRegistered;
-      }
-      notifyListeners();
-    } on FirebaseAuthException catch (e) {
-      errorCallback(e);
-    }
-  }
-
-  void cancelRegistration() {
-    _loginState = ApplicationLoginState.emailAddress;
-    notifyListeners();
-  }
-
-  Future<void> getUserLocal() async {
-    final db = await databaseOffer;
-    try {
-      Map<String, dynamic> document = {};
-      await FirebaseFirestore.instance
-          .collection("JefeLocal")
-          .doc(user.uid)
-          .get()
-          .then((value) => document = (value.data())!);
-      String localId = document['local'];
-      if (locals.containsKey(localId)) _userLocal = locals[localId];
-    } catch (e) {
-      print("ERROR LOCAL OWNER::" + e.toString());
-    }
+    await firebaseDatabase!.signInWithEmailAndPassword(email, password, (e) { });
   }
 
   Future<bool> changeUsername(String newName) async {
-    try {
-      await FirebaseAuth.instance.currentUser!.updateDisplayName(newName);
-      _user.name = newName;
-      notifyListeners();
-      return true;
-    } on FirebaseAuthException catch (e) {
-      print(e.toString());
-    }
-    return false;
+    return firebaseDatabase!.changeUsername(newName);
   }
 
   Future<bool> changePassword(String oldPassword, String newPassword) async {
-    bool result = true;
-    try {
-      var user = FirebaseAuth.instance.currentUser;
-      var credential = EmailAuthProvider.credential(
-          email: _user.email, password: oldPassword);
-      // Prompt the user to re-provide their sign-in credentials
-      await user
-          ?.reauthenticateWithCredential(credential)
-          .then((credential) async {
-        // User re-authenticated.
-        FirebaseAuth.instance.currentUser!.updatePassword(newPassword);
-      }).onError((error, stackTrace) {
-        print("ERROR CHANGE IN PASSWORD::" + error.toString());
-        result = false;
-      });
-    } on FirebaseAuthException catch (e) {
-      print("ERROR GETTING USER::" + e.toString());
-      result = false;
-    }
-    print("OUT:" + result.toString());
-    return result;
+    return changePassword(oldPassword, newPassword);
   }
 
   Future<bool> registerAccount(
@@ -259,30 +110,20 @@ class AppState extends ChangeNotifier {
       String displayName,
       String password,
       void Function(FirebaseAuthException e) errorCallback) async {
-    try {
-      var credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
-      await credential.user!.updateDisplayName(displayName);
-      await signInWithEmailAndPassword(email, password, (e) {});
-      return true;
-    } on FirebaseAuthException catch (e) {
-      print(e.toString());
-    }
-    return false;
+    return firebaseDatabase!.registerAccount(email, displayName, password, (e) { });
   }
 
   void signOut() {
-    FirebaseAuth.instance.signOut();
-    _user = User(uid: "anonymous", name: "anonymous", email: "");
+    firebaseDatabase!.signOut();
   }
 
   bool isLogged() {
-    return _loginState == ApplicationLoginState.loggedIn;
+    return firebaseDatabase!.loginState == ApplicationLoginState.loggedIn;
   }
 
   void setOverlayFunction(Function overlayFunction) {
     _overlayData = overlayFunction;
-    getMarkers(_overlayData);
+    if(firebaseDatabase != null)getMarkers(firebaseDatabase!.locals);
     notifyListeners();
   }
 
@@ -293,8 +134,8 @@ class AppState extends ChangeNotifier {
 
   void setLocal(Local local) {
     _localSelected = local;
-    _offersSubscription?.cancel();
-    _offersSubscription = FirebaseFirestore.instance
+    firebaseDatabase!.offersSubscription?.cancel();
+    firebaseDatabase!.offersSubscription = FirebaseFirestore.instance
         .collection("Local")
         .doc(local.id)
         .collection("Oferta")
@@ -307,7 +148,6 @@ class AppState extends ChangeNotifier {
 
   Future<void> getCategories() async {
     //Obtener referencia de la base de datos
-    final db = await databaseOffer;
     try {
       Map<String, dynamic> document = {};
       await FirebaseFirestore.instance
@@ -320,152 +160,41 @@ class AppState extends ChangeNotifier {
         print(categories[i]);
         _categories[i] = categories[i];
         _stateCategories[i] = false;
-        await db.insert(
-            'category',
-            {
-              'id': i,
-              'name': categories[i],
-            },
-            conflictAlgorithm: ConflictAlgorithm.replace);
+        await sqlDatabase.addCategory(i, categories[i]);
       }
       print(categories[0]);
       _categories[0] = categories[0];
       _stateCategories[0] = false;
-      await db.insert(
-          'category',
-          {
-            'id': 0,
-            'name': categories[0],
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      await sqlDatabase.addCategory(0, categories[0]);
     } catch (e) {
       print(e.toString());
       // Petición a base de datos local para obtener categorias
-      final List<Map<String, dynamic>> maps = await db.query('categories');
-      for (var data in maps) {
-        _categories[data['id']] = data['name'];
-      }
+      _categories = await sqlDatabase.getCategories();
     }
   }
 
   Future<bool> sendLocal(String name) async {
-    try {
-      //Se busca la colección que almacena las consultas
-      CollectionReference collection =
-          FirebaseFirestore.instance.collection("LocalPetition");
-      collection.add({
-        "UID": _user.uid,
-        "nombre": name,
-        "ubicacion": GeoPoint(_location.latitude, _location.longitude),
-      });
-      //_offersSelected.add(Offer(id:_uid, name:name,price: int.parse(price)));
-    } catch (e) {
-      print(e.toString());
-      return false;
-    }
-    return true;
+    return firebaseDatabase!.sendLocal(name, _location);
   }
 
   Future<bool> updateLocalOffer(Offer newOffer) async {
-    try {
-      //Se busca la colección que almacena las consultas
-      await FirebaseFirestore.instance
-          .collection("Local")
-          .doc(userLocal?.id)
-          .collection("Oferta")
-          .doc(newOffer.id)
-          .update({"nombre": newOffer.name, "precio": newOffer.price, "categoria": newOffer.category});
-      //_offersSelected.add(Offer(id:_uid, name:name,price: int.parse(price)));
-    } catch (e) {
-      print(e.toString());
-      return false;
-    }
-    return true;
+    return firebaseDatabase!.updateLocalOffer(newOffer);
   }
 
   Future<bool> changeLocalName(String name) async {
-    try {
-      //Se busca el local y se actualiza el nombre
-      await FirebaseFirestore.instance
-          .collection("Local")
-          .doc(_userLocal?.id)
-          .update({"nombre": name}).then((value) {
-        print("CHANGE LOCAL NAME: " + name);
-        locals[userLocal?.id]?.name = name;
-        userLocal?.name = name;
-      }).onError((error, stackTrace) {
-        print("ERROR CHANGE LOCAL NAME::" + error.toString());
-      });
-
-      notifyListeners();
-      //_offersSelected.add(Offer(id:_uid, name:name,price: int.parse(price)));
-    } catch (e) {
-      print(e.toString());
-      return false;
-    }
-    return true;
+    return firebaseDatabase!.changeLocalName(name);
   }
 
   Future<bool> sendOffer(Offer offer) async {
-    try {
-      //Se busca la colección que almacena las consultas
-      CollectionReference collection = FirebaseFirestore.instance
-          .collection("Local")
-          .doc(_localSelected?.id)
-          .collection("Oferta");
-      collection.add({
-        "UID": _user.uid,
-        "nombre": offer.name,
-        "precio": offer.price,
-        "categoria": offer.category
-      });
-      //_offersSelected.add(Offer(id:_uid, name:name,price: int.parse(price)));
-    } catch (e) {
-      print(e.toString());
-      return false;
-    }
-    return true;
+    return firebaseDatabase!.sendOffer(offer, _localSelected?.id as String);
   }
 
   Future<bool> sendReport(String type, String description) async {
-    try {
-      //Se busca el documento asociado a la oferta seleccionada
-      DocumentReference document = FirebaseFirestore.instance
-          .collection("Local")
-          .doc(_localSelected?.id)
-          .collection("Oferta")
-          .doc(_offerSelected?.id);
-      /* **Descomentar para verificar datos del documento**
-      Map<String, dynamic>? data;
-      {
-        DocumentSnapshot value;
-        value = await document.get();
-        data = value.data() as Map<String, dynamic>?;
-      }
-      print(data.toString());*/
-      document
-          .collection("Reportes")
-          .add({"UID": _user.uid, "tipo": type, "descripcion": description});
-    } catch (e) {
-      print(e.toString());
-      return false;
-    }
-    return true;
+    return firebaseDatabase!.sendReport(type, description, _localSelected?.id as String, _offerSelected?.id as String);
   }
 
   Future<bool> sendConsult(String type, String description) async {
-    try {
-      //Se busca la colección que almacena las consultas
-      CollectionReference collection =
-          FirebaseFirestore.instance.collection("Consulta");
-
-      collection
-          .add({"UID": _user.uid, "tipo": type, "descripcion": description});
-    } catch (e) {
-      print(e.toString());
-      return false;
-    }
-    return true;
+    return firebaseDatabase!.sendConsult(type, description);
   }
 
   Future<String> getLocation() async {
@@ -503,19 +232,19 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Set<Marker> getMarkers(Function function) {
+  Set<Marker> getMarkers(Map<String, Local> locals) {
     //Se crea un Set de marcadores
     _markers = <Marker>{};
     //De los Locales obtenidos desde la base de datos
     //se crea un marcador por cada uno y se asigna la
     //función 'function' cuando son presionados
-    _locals.forEach((key, value) {
+    locals.forEach((key, value) {
       //print("Getting data from Cloud | " + value.id);
       _markers.add(Marker(
         markerId: MarkerId(value.id),
         position: value.location,
         onTap: () {
-          function(value);
+          _overlayData(value);
           removeUserMarker();
         },
       ));
@@ -526,143 +255,29 @@ class AppState extends ChangeNotifier {
   Future<void> getOffersOf(String id) async {
     //Se crea un Set de Ofertas y una lista para almacenar
     //los documentos de la base de datos
-    List data = [];
-    Set<Offer> _offers = <Offer>{};
-    try {
-      //Se consiguen las Ofertas desde el Local con la id
-      //indicada
-      await _locals[id]?.offers.get().then((snapshot) => {
-            snapshot.docs.forEach((document) {
-              data.add(document);
-            })
-          });
-      //Se almacenan las Ofertas en el Set _offers
-      for (var document in data) {
-        _offers.add(Offer(
-            id: document.id,
-            name: document.data()['nombre'] as String,
-            price: document.data()['precio'],
-            category: document.data()['categoria']));
-        //print(document.id);
-      }
-    } catch (e) {
-      print("ERROR: GETTING DATA FROM ID " + e.toString());
-    }
 
-    _offersSelected = _offers;
+    _offersSelected = await firebaseDatabase!.getOffersOf(id);
     notifyListeners();
   }
 
   Future<Set<Offer>> getOffersFrom(int indexLocal, int indexOffer) async {
-    Set<Offer> _offers = <Offer>{};
-    int totalOffer = 0;
-    int i = indexLocal;
-    int e = indexOffer;
-    try {
-      print("LOCALS[" + _locals.length.toString() + "]:");
-      for (i; i < _locals.length; i++) {
-        //print("LOCAL INDEX " + i.toString());
-        List data = [];
-        if (totalOffer >= 50) {
-          break;
-        }
-        await _locals.values.elementAt(i).offers.get().then((snapshot) => {
-              snapshot.docs.forEach((document) {
-                data.add(document);
-              })
-            });
-        print("OFFERS[" + data.length.toString() + "]:");
-        for (e; e < data.length; e++) {
-          //print("OFFER INDEX " + e.toString());
-          if (totalOffer >= 50) {
-            break;
-          }
-          if (_offerFilter.text != "" &&
-                  !(data[e].data()['nombre'] as String)
-                      .toLowerCase()
-                      .contains(_offerFilter.text) ||
-              _offerFilter.range.start >= data[e].data()['precio'] ||
-              _offerFilter.range.end <= data[e].data()['precio'] ||
-              !_offerFilter.inCategory(data[e].data()['categoria'])) {
-            continue;
-          }
-          _offers.add(Offer(
-            id: data[e].id,
-            name: data[e].data()['nombre'] as String,
-            price: data[e].data()['precio'],
-            category: data[e].data()['categoria'],
-          ));
-          //print(data[e].id);
-          totalOffer++;
-        }
-        e = 0;
-      }
-      indexLocal = i;
-      indexOffer = e;
-    } catch (e) {
-      print("ERROR: GETTING OFFERS FROM DATABASE " + e.toString());
-    }
-    return _offers;
+    return firebaseDatabase!.getOffersFrom(indexLocal, indexOffer, offerFilter);
   }
 
   Future<void> removeOffer(Offer offer) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection("Local")
-          .doc(_userLocal?.id)
-          .collection("Oferta")
-          .doc(offer.id)
-          .delete()
-          .then((value) => print("DELETE:" + offer.id))
-          .onError((error, stackTrace) =>
-              print("ERROR DELETE::" + error.toString()));
-    } catch (e) {
-      print("ERROR: GETTING OFFERS FROM DATABASE " + e.toString());
-    }
+    firebaseDatabase!.removeOffer(offer);
   }
 
   Future<bool> saveFavorite(Offer offer) async {
-    //Obtener referencia de la base de datos
-    final db = await databaseOffer;
-    //Añadir oferta a la base de datos
-    if ((await db.query('offer', where: 'id = ?', whereArgs: [(offer.id)]))
-        .isEmpty) {
-      await db.insert('offer', offer.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
-      favoritesId.add(offer.id);
-    } else {
-      await db.delete('offer', where: 'id = ?', whereArgs: [offer.id]);
-      favoritesId.remove(offer.id);
-    }
+    //Se actualiza la lista de id en favoritos de acuerdo al resultado de la
+    //operación
+    await sqlDatabase.saveFavorite(offer) ? favoritesId.add(offer.id):favoritesId.remove(offer.id);
+    //Se indica que se ha actualizado a las interfaces
     notifyListeners();
-    print(await getFavorites());
     return true;
   }
 
   Future<List<Offer>> getFavorites() async {
-    //Obtener referencia de la base de datos
-    List<Offer> offers = [];
-    final db = await databaseOffer;
-    // Petición a base de datos local para obtener ofertas favoritas
-    final List<Map<String, dynamic>> maps = await db.query('offer');
-
-    // Convertir el mapa en una lista de objetos Offer
-    for (var data in maps) {
-      if (_offerFilter.text != "" &&
-              !(data['name'] as String)
-                  .toLowerCase()
-                  .contains(_offerFilter.text) ||
-          _offerFilter.range.start >= data['price'] ||
-          _offerFilter.range.end <= data['price'] ||
-          !_offerFilter.inCategory(data['category'])) {
-        continue;
-      }
-      offers.add(Offer(
-          id: data['id'],
-          name: data['name'],
-          price: data['price'],
-          category: data['category']));
-    }
-    return offers;
+    return await sqlDatabase.getFavorites(offerFilter);
   }
 }

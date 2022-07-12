@@ -5,7 +5,7 @@ import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/app_state.dart';
-import '../model/offerClass.dart';
+import '../model/offer_class.dart';
 
 class Ofertas extends StatefulWidget {
   const Ofertas({Key? key}) : super(key: key);
