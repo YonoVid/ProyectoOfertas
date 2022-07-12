@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../model/localClass.dart';
 import '../providers/app_state.dart';
 
 // Press the Navigation Drawer button to the left of AppBar to show
@@ -12,12 +13,10 @@ class NavDrawer extends Drawer {
     required this.email,
   }) : super(key: key);
 
-
   final String username;
   final String email;
 
-  void openNamed(context, String name)
-  {
+  void openNamed(context, String name) {
     Navigator.popUntil(context, ModalRoute.withName("/"));
     Navigator.pushNamed(context, name);
   }
@@ -26,9 +25,7 @@ class NavDrawer extends Drawer {
   Widget build(BuildContext context) {
     final drawerHeader = Consumer<AppState>(
       builder: (context, appState, _) => UserAccountsDrawerHeader(
-        decoration: BoxDecoration(
-            color: Colors.indigo[600]
-        ),
+        decoration: BoxDecoration(color: Colors.indigo[600]),
         accountName: Text(
           appState.user.name,
         ),
@@ -43,7 +40,7 @@ class NavDrawer extends Drawer {
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.85,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0.0,0.0,100.0,0.0),
+        padding: const EdgeInsets.fromLTRB(0.0, 0.0, 100.0, 0.0),
         child: Container(
           color: Colors.brown[50],
           child: ListView(
@@ -56,7 +53,8 @@ class NavDrawer extends Drawer {
                 leading: const Icon(Icons.location_on_rounded),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst );
+                  Navigator.popUntil(
+                      context, (Route<dynamic> route) => route.isFirst);
                 },
               ),
               ListTile(
@@ -84,15 +82,32 @@ class NavDrawer extends Drawer {
                 endIndent: 0,
                 color: Colors.black,
               ),
-              ListTile(
-                title: Text("Soporte"),
-                leading: const Icon(Icons.support_rounded),
-                onTap: () {
-                  openNamed(context, '/soporte');
+              Consumer<AppState>(
+                builder: (context, appState, _) {
+                  if (appState.userLocal != null) {
+                    return ListTile(
+                      title: const Text("Gestionar local"),
+                      leading: const Icon(Icons.manage_accounts_outlined),
+                      onTap: () {
+                        appState.hideData();
+                        appState.setLocal(appState.userLocal as Local);
+                        appState.getOffersOf((appState.userLocal as Local).id);
+                        openNamed(context, '/gestionar_local');
+                      },
+                    );
+                  } else {
+                    return ListTile(
+                      title: const Text("Manejar un local"),
+                      leading: const Icon(Icons.support_rounded),
+                      onTap: () {
+                        openNamed(context, '/manejo_local');
+                      },
+                    );
+                  }
                 },
               ),
               ListTile(
-                title: Text("Preguntas frecuentes"),
+                title: Text("Soporte"),
                 leading: const Icon(Icons.question_answer_rounded),
                 onTap: () {
                   openNamed(context, '/preguntas');
@@ -109,7 +124,10 @@ class NavDrawer extends Drawer {
                 title: Text("Cerrar sesión"),
                 leading: const Icon(Icons.person_pin),
                 onTap: () {
-                  Provider.of<AppState>(context, listen:false).signOut();
+                  Navigator.pop(context);
+                  Navigator.popUntil(
+                      context, (Route<dynamic> route) => route.isFirst);
+                  Provider.of<AppState>(context, listen: false).signOut();
                   openNamed(context, '/login');
                 },
               ),

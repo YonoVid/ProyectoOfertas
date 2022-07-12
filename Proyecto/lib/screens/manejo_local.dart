@@ -1,35 +1,23 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
-import 'package:ofertas_flutter/widgets/formbase.dart';
 import 'package:provider/provider.dart';
 
+import '../model/localClass.dart';
 import '../model/offerClass.dart';
 import '../providers/app_state.dart';
+import '../widgets/formbase.dart';
 
-class AgregarOferta extends StatefulWidget {
-  const AgregarOferta({Key? key}) : super(key: key);
+class ManejoLocal extends StatefulWidget {
+  const ManejoLocal({Key? key}) : super(key: key);
 
   @override
-  State<AgregarOferta> createState() => _AgregarOfertaState();
+  State<ManejoLocal> createState() => _ManejoLocalState();
 }
 
-class _AgregarOfertaState extends State<AgregarOferta> {
-  String _dropdownValue = 'Tipo de producto';
-  String _dropDownCategoryDefault = "Tipo de producto";
-  final List<String> _items = <String>[
-    'Tipo de producto',
-    'Frutas',
-    'Verduras',
-    'Despensa',
-    'Productos higiene',
-    'Medicamento',
-    'Articulos de aseo',
-    'Otro',
-  ];
-
-  final TextEditingController _inputName = TextEditingController();
-  final TextEditingController _inputPrice = TextEditingController();
+class _ManejoLocalState extends State<ManejoLocal> {
+  String _dropDownCategoryDefault = "Elegir local";
+  String _dropDownValue = "Elegir local";
+  TextEditingController _inputDescription = TextEditingController();
 
   void msg(String msg) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -69,32 +57,32 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                 margin: EdgeInsets.symmetric(vertical: 15.0),
                 child: Consumer<AppState>(
                   builder: (context, appState, _) => DropdownButton<String>(
-                    value: _dropdownValue,
+                    value: _dropDownValue,
                     icon: const Icon(Icons.arrow_downward),
                     dropdownColor: Colors.brown[50],
                     elevation: 16,
                     style:
-                        const TextStyle(fontSize: 16.0, color: Colors.indigo),
+                    const TextStyle(fontSize: 16.0, color: Colors.indigo),
                     underline: Container(
                       height: 2,
                       color: Colors.indigo,
                     ),
                     onChanged: (String? newValue) {
                       setState(() {
-                        _dropdownValue = newValue!;
+                        _dropDownValue = newValue!;
                       });
                     },
                     items: [
-                          DropdownMenuItem<String>(
-                            value: _dropDownCategoryDefault,
-                            child: Text(_dropDownCategoryDefault),
-                          )
-                        ] +
-                        appState.categories.values
-                            .map<DropdownMenuItem<String>>((String value) {
+                      DropdownMenuItem<String>(
+                        value: _dropDownCategoryDefault,
+                        child: Text(_dropDownCategoryDefault),
+                      )
+                    ] +
+                        appState.locals.values
+                            .map<DropdownMenuItem<String>>((Local value) {
                           return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
+                            value: value.id,
+                            child: Text(value.name),
                           );
                         }).toList(),
                   ),
@@ -103,23 +91,17 @@ class _AgregarOfertaState extends State<AgregarOferta> {
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: TextField(
-                  controller: _inputName,
-                  maxLength: 30,
+                  controller: _inputDescription,
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Nombre de producto',
-                      hintText: 'Ejemplo: Pasta Carozzi'),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: TextField(
-                  controller: _inputPrice,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Precio del producto',
-                      hintText: 'Ejemplo: 1000'),
+                      fillColor: Colors.white,
+                      labelText: 'Comentarios (opcional)',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                      hintText: 'Describe tu problema'),
+                  textInputAction: TextInputAction.newline,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  minLines: 10,
                 ),
               ),
               Container(
@@ -130,12 +112,9 @@ class _AgregarOfertaState extends State<AgregarOferta> {
                     borderRadius: BorderRadius.circular(20)),
                 child: TextButton(
                   onPressed: () async {
-                    if (_items[0] != _dropdownValue &&
-                        _inputName.text != "" &&
-                        _inputPrice.text != "") {
-                      if (await Provider.of<AppState>(context, listen: false)
-                          .sendOffer(Offer(id: "-1", name:_inputName.text, price: int.parse(_inputPrice.text),
-                              category: _dropdownValue))) {
+                    if (_dropDownValue != _dropDownCategoryDefault &&
+                        _inputDescription.text != "") {
+                      if (false) {
                         Navigator.pop(context);
                         msg("¡La oferta ha sido enviado exitosamente!");
                       } else {
@@ -154,6 +133,10 @@ class _AgregarOfertaState extends State<AgregarOferta> {
             ],
           ),
         ),
+      ),
+      drawer: NavDrawer(
+        username: 'Nombre de usuario',
+        email: 'Correo',
       ),
     );
   }

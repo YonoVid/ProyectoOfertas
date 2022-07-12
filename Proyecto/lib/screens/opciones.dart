@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:ofertas_flutter/screens/navigationDrawer.dart';
 import 'package:provider/provider.dart';
 
+import '../model/offerClass.dart';
 import '../providers/app_state.dart';
 
 class Opciones extends StatefulWidget {
@@ -85,15 +86,23 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async{
               if (_inputController0.text.length >= 6) {
                 Navigator.pop(context);
-                Provider.of<AppState>(context, listen: false)
-                    .changeUsername(_inputController0.text);
-                _inputController0.clear();
-                msg("¡Nombre de usuaro ha sido cambiada exitosamente!");
+                if(await Provider.of<AppState>(context, listen: false)
+                    .changeUsername(_inputController0.text))
+                  {
+                    _inputController0.clear();
+                    msg("¡Nombre de usuario ha sido cambiada exitosamente!");
+                  }
+                else
+                  {
+                    msg("¡No se ha podido cambiar el nombre de usuario!");
+                  }
               }
-              msg("Nombre debe tener un mínimo 6 caracteres");
+              else{
+                msg("Nombre debe tener un mínimo 6 caracteres");
+              }
             },
             child: const Text('OK'),
           ),
@@ -114,6 +123,7 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
                 TextField(
                   controller: _inputController0,
                   maxLength: 16,
+                  obscureText: true,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     fillColor: Colors.white,
@@ -123,6 +133,7 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
                 TextField(
                   controller: _inputController1,
                   maxLength: 16,
+                  obscureText: true,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     fillColor: Colors.white,
@@ -132,6 +143,7 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
                 TextField(
                   controller: _inputController2,
                   maxLength: 16,
+                  obscureText: true,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     fillColor: Colors.white,
