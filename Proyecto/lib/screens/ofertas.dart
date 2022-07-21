@@ -173,7 +173,7 @@ class ListOfertas extends StatelessWidget {
             ),
             Expanded(
               flex: 3,
-              child: _OfertasDatos(name: offer.name, price: "\$"+offer.price.toString(), location: "null",),
+              child: _OfertasDatos(name: offer.name, price: "\$"+offer.price.toString(), location: offer.category,),
             ),
 
             Expanded(

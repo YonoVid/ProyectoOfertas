@@ -91,7 +91,7 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
                 RangeSlider(
                   values: _priceRangeValues,
                   min: 0,
-                  max: 100000,
+                  max: 10000,
                   divisions: 50,
                   labels: RangeLabels(
                       '\$' + _priceRangeValues.start.round().toString(),
@@ -154,13 +154,13 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
                     onPressed: () {
                       AppState appState = Provider.of<AppState>(context, listen: false);
                       setState(() {
-                        _priceRangeValues = RangeValues(0, 100000);
+                        _priceRangeValues = RangeValues(0, 10000);
                         _filterController.clear();
                         Filter filter =
                             Provider.of<AppState>(context, listen: false)
                                 .offerFilter;
                         filter.text = "";
-                        filter.range = RangeValues(0, 100000);
+                        filter.range = RangeValues(0, 10000);
                         filter.category = {};
                         for(var key in appState.stateCategories.keys)
                           {

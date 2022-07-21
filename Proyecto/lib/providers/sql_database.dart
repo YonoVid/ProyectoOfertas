@@ -31,22 +31,6 @@ class SqlDatabase{
         );
       },
       onUpgrade: (db, versionOld, versionNew) {
-        /*if (versionOld == 2) {
-          db.execute(
-            'DROP TABLE IF EXISTS offer',
-          );
-          db.execute(
-            'CREATE TABLE offer(id TEXT PRIMARY KEY, name TEXT, price INTEGER, category TEXT)',
-          );
-        }
-        if (versionOld == 1) {
-          db.execute(
-            'CREATE TABLE category(id INTEGER PRIMARY KEY, name TEXT)',
-          );
-          return db.execute(
-            'CREATE TABLE updates(name TEXT PRIMARY KEY, dateUpdate date)',
-          );
-        }*/
       },
       version: 1,
     );

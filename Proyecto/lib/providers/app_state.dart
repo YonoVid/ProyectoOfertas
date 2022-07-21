@@ -29,7 +29,7 @@ class AppState extends ChangeNotifier {
   Map<int, bool> get stateCategories => _stateCategories;
 
   Filter _offerFilter =
-      Filter(text: "", range: RangeValues(0, 50000), category: {});
+      Filter(text: "", range: RangeValues(0, 10000), category: {});
   Filter get offerFilter => _offerFilter;
   //set offerFilter(filter) => _offerFilter = filter;
 
@@ -56,6 +56,8 @@ class AppState extends ChangeNotifier {
   set offerSelected(offer) => _offerSelected = offer;
   Set<Offer> _offersSelected = {};
   Set<Offer> get offersSelected => _offersSelected;
+  Set<Offer> _offersUserSelected = {};
+  Set<Offer> get offersUserSelected => _offersUserSelected;
   //set offers (offer) => _offersSelected = offer;
 
   Set<String> favoritesId = {};
@@ -102,7 +104,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<bool> changePassword(String oldPassword, String newPassword) async {
-    return changePassword(oldPassword, newPassword);
+    return firebaseDatabase!.changePassword(oldPassword, newPassword);
   }
 
   Future<bool> registerAccount(
@@ -186,7 +188,8 @@ class AppState extends ChangeNotifier {
   }
 
   Future<bool> sendOffer(Offer offer) async {
-    return firebaseDatabase!.sendOffer(offer, _localSelected?.id as String);
+    int userLevel = (_localSelected?.id == userLocal?.id)? 2:1;
+    return firebaseDatabase!.sendOffer(offer, _localSelected?.id as String, userLevel);
   }
 
   Future<bool> sendReport(String type, String description) async {
@@ -260,12 +263,36 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> getUserOffersOf() async {
+    //Se crea un Set de Ofertas y una lista para almacenar
+    //los documentos de la base de datos
+    print("GET OFFERS USER SELECTED");
+    _offersUserSelected = await firebaseDatabase!.getUserOffersOf(userLocal?.id as String);
+    print("UPDATED OFFERS USER SELECTED");
+    notifyListeners();
+  }
+
   Future<Set<Offer>> getOffersFrom(int indexLocal, int indexOffer) async {
     return firebaseDatabase!.getOffersFrom(indexLocal, indexOffer, offerFilter);
   }
 
+  Future<void> addUserOffer(Offer offer) async {
+    if(await firebaseDatabase!.sendOffer(offer, userLocal?.id as String, 2))
+      {
+        firebaseDatabase!.removeOffer(offer, true);
+        offersUserSelected.remove(offer);
+      }
+  }
+
   Future<void> removeOffer(Offer offer) async {
-    firebaseDatabase!.removeOffer(offer);
+    firebaseDatabase!.removeOffer(offer, false);
+  }
+
+  Future<void> removeUserOffer(Offer offer) async {
+    if(await firebaseDatabase!.removeOffer(offer, true)) {
+      offersUserSelected.remove(offer);
+      notifyListeners();
+    }
   }
 
   Future<bool> saveFavorite(Offer offer) async {

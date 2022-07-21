@@ -6,11 +6,13 @@ class Local {
       {required this.id,
       required this.name,
       required this.location,
-      required this.offers});
+      required this.offers,
+      required this.offersUsers});
   final String id;
   String name;
   final LatLng location;
   final CollectionReference offers;
+  CollectionReference offersUsers;
 }
 
 /*

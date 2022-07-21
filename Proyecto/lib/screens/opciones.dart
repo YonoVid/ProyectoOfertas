@@ -45,6 +45,8 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
   TextEditingController _inputController1 = TextEditingController();
   TextEditingController _inputController2 = TextEditingController();
 
+  bool _enableUserOffer = false;
+
   void msg(String msg) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -86,21 +88,17 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () async{
+            onPressed: () async {
               if (_inputController0.text.length >= 6) {
                 Navigator.pop(context);
-                if(await Provider.of<AppState>(context, listen: false)
-                    .changeUsername(_inputController0.text))
-                  {
-                    _inputController0.clear();
-                    msg("¡Nombre de usuario ha sido cambiada exitosamente!");
-                  }
-                else
-                  {
-                    msg("¡No se ha podido cambiar el nombre de usuario!");
-                  }
-              }
-              else{
+                if (await Provider.of<AppState>(context, listen: false)
+                    .changeUsername(_inputController0.text)) {
+                  _inputController0.clear();
+                  msg("¡Nombre de usuario ha sido cambiada exitosamente!");
+                } else {
+                  msg("¡No se ha podido cambiar el nombre de usuario!");
+                }
+              } else {
                 msg("Nombre debe tener un mínimo 6 caracteres");
               }
             },
@@ -228,35 +226,57 @@ class _OpcionesListaState extends State<OpcionesLista> with RestorationMixin {
           icon: Icons.security_update_outlined,
           onTap: changePassword,
         ),
-        /*ListOpcion(
-          title: 'Prueba opción',
-          icon: Icons.settings_rounded,
-          onTap: (){},
-        ),
-        Container(
-          color: Colors.brown[100],
-          height: MediaQuery.of(context).size.height / 10,
-          margin: EdgeInsets.all(1.0),
-          padding: EdgeInsets.symmetric(horizontal: 30.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Slider(
-                value: _discreteValue.value,
-                min: 0,
-                max: 200,
-                divisions: 5,
-                label: _discreteValue.value.round().toString(),
-                onChanged: (value) {
-                  setState(() {
-                    _discreteValue.value = value;
-                  });
-                },
+        /*Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5.0),
+          child: InkWell(
+            onTap: () async {
+              await Provider.of<AppState>(context, listen: false)
+                  .changePassword(
+                  _inputController0.text, _inputController1.text);
+            },
+            child: Container(
+              color: Colors.brown[100],
+              height: MediaQuery.of(context).size.height / 10,
+              margin: EdgeInsets.all(1.0),
+              padding: EdgeInsets.symmetric(horizontal: 30.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Center(
+                      child: Icon(Icons.supervised_user_circle_outlined),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 4,
+                    child: Center(
+                      child: Text(
+                        'Permitir ofertas de usuarios',
+                        style: TextStyle(fontSize: 16.0),
+                      ),
+                    ),
+                  ),
+                  /*Expanded(
+                    flex: 1,
+                    child: Center(
+                      child: Checkbox(
+                        checkColor: Colors.white,
+                        value: _enableUserOffer,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _enableUserOffer = value!;
+                          });
+                        },
+                      ),
+                    )
+                  ),*/
+                ],
               ),
-              Text("Distancia de búsqueda"),
-            ],
+            ),
           ),
-        ),*/
+        )*/
       ],
     );
   }

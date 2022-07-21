@@ -60,6 +60,7 @@ class FirebaseDatabase{
           name: document.data()['nombre'] as String,
           location: LatLng(geoPoint.latitude, geoPoint.longitude),
           offers: document.reference.collection('Oferta'),
+          offersUsers: document.reference.collection('OfertaUsuario')
         );
         loadMarkers(locals);
       }
@@ -236,13 +237,14 @@ class FirebaseDatabase{
     return false;
   }
 
-  Future<bool> sendOffer(Offer offer, String localId) async {
+  Future<bool> sendOffer(Offer offer, String localId, int userLevel) async {
+    String collectionOffer = (userLevel == 1)? "OfertaUsuario":"Oferta";
     try {
       //Se busca la colección que almacena las consultas
       CollectionReference collection = FirebaseFirestore.instance
           .collection("Local")
           .doc(localId)
-          .collection("Oferta");
+          .collection(collectionOffer);
       collection.add({
         "UID": user.uid,
         "nombre": offer.name,
@@ -328,6 +330,36 @@ class FirebaseDatabase{
     return _offers;
   }
 
+  Future<Set<Offer>> getUserOffersOf(String id) async {
+    //Se crea un Set de Ofertas y una lista para almacenar
+    //los documentos de la base de datos
+    List data = [];
+    Set<Offer> _offers = <Offer>{};
+    try {
+      //Se consiguen las Ofertas desde el Local con la id
+      //indicada
+      await locals[id]?.offersUsers.get().then((snapshot) => {
+        snapshot.docs.forEach((document) {
+          data.add(document);
+        })
+      });
+      //Se almacenan las Ofertas en el Set _offers
+      for (var document in data) {
+        _offers.add(Offer(
+            id: document.id,
+            name: document.data()['nombre'] as String,
+            price: document.data()['precio'],
+            category: document.data()['categoria']));
+        //print(document.id);
+      }
+    } catch (e) {
+      print("ERROR: GETTING DATA FROM ID " + e.toString());
+    }
+
+    notifyListeners();
+    return _offers;
+  }
+
   Future<Set<Offer>> getOffersFrom(int indexLocal, int indexOffer, Filter offerFilter) async {
     Set<Offer> _offers = <Offer>{};
     int totalOffer = 0;
@@ -380,14 +412,15 @@ class FirebaseDatabase{
     return _offers;
   }
 
-  Future<void> removeOffer(Offer offer) async {
+  Future<bool> removeOffer(Offer offer, bool fromUser) async {
     if(userLocal != null)
       {
+        print((fromUser)?"OfertaUsuario":"Oferta");
         try {
           await FirebaseFirestore.instance
               .collection("Local")
               .doc(userLocal!.id)
-              .collection("Oferta")
+              .collection((fromUser)?"OfertaUsuario":"Oferta")
               .doc(offer.id)
               .delete()
               .then((value) => print("DELETE:" + offer.id))
@@ -395,7 +428,10 @@ class FirebaseDatabase{
               print("ERROR DELETE::" + error.toString()));
         } catch (e) {
           print("ERROR: GETTING OFFERS FROM DATABASE " + e.toString());
+          return false;
         }
+        return true;
       }
+    return false;
   }
 }

@@ -12,11 +12,14 @@ class GestionarLocal extends StatefulWidget {
   State<GestionarLocal> createState() => _GestionarLocalState();
 }
 
-class _GestionarLocalState extends State<GestionarLocal> {
+class _GestionarLocalState extends State<GestionarLocal>
+    with SingleTickerProviderStateMixin {
   String _dropDownCategoryDefault = "Categoría de la oferta";
   String _dropDownValue = "Categoría de la oferta";
   TextEditingController _inputController0 = TextEditingController();
   TextEditingController _inputController1 = TextEditingController();
+
+  late TabController _updateTabController;
 
   Future<void> changeLocalName(context) async {
     return showDialog<void>(
@@ -111,13 +114,14 @@ class _GestionarLocalState extends State<GestionarLocal> {
                   padding: EdgeInsets.all(10.0),
                   child: Consumer<AppState>(
                     builder: (context, appState, _) => StatefulBuilder(
-                      builder: (context, dropDownState) => DropdownButton<String>(
+                      builder: (context, dropDownState) =>
+                          DropdownButton<String>(
                         value: _dropDownValue,
                         icon: const Icon(Icons.arrow_downward),
                         dropdownColor: Colors.brown[50],
                         elevation: 16,
-                        style:
-                        const TextStyle(fontSize: 16.0, color: Colors.indigo),
+                        style: const TextStyle(
+                            fontSize: 16.0, color: Colors.indigo),
                         underline: Container(
                           height: 2,
                           color: Colors.indigo,
@@ -128,11 +132,11 @@ class _GestionarLocalState extends State<GestionarLocal> {
                           });
                         },
                         items: [
-                          DropdownMenuItem<String>(
-                            value: _dropDownCategoryDefault,
-                            child: Text(_dropDownCategoryDefault),
-                          )
-                        ] +
+                              DropdownMenuItem<String>(
+                                value: _dropDownCategoryDefault,
+                                child: Text(_dropDownCategoryDefault),
+                              )
+                            ] +
                             appState.categories.values
                                 .map<DropdownMenuItem<String>>((String value) {
                               return DropdownMenuItem<String>(
@@ -195,10 +199,16 @@ class _GestionarLocalState extends State<GestionarLocal> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _updateTabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("MANEJAR LOCAL"),
+        title: Text("GESTIONAR LOCAL"),
         centerTitle: true,
         backgroundColor: Colors.indigo[500],
         elevation: 0.0,
@@ -219,7 +229,7 @@ class _GestionarLocalState extends State<GestionarLocal> {
                   right: 20,
                   child: Container(
                     margin:
-                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
                     color: Colors.indigo[500],
                     child: Row(
                       children: [
@@ -243,7 +253,7 @@ class _GestionarLocalState extends State<GestionarLocal> {
                           flex: 1,
                           child: IconButton(
                               onPressed: () async =>
-                              await changeLocalName(context),
+                                  await changeLocalName(context),
                               icon: Icon(Icons.edit),
                               color: Colors.brown[50]),
                         ),
@@ -256,7 +266,7 @@ class _GestionarLocalState extends State<GestionarLocal> {
                   left: 125.0,
                   child: Container(
                     padding:
-                    EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
+                        EdgeInsets.symmetric(vertical: 0.0, horizontal: 10.0),
                     decoration: BoxDecoration(
                         color: Colors.redAccent,
                         borderRadius: BorderRadius.circular(20)),
@@ -291,21 +301,47 @@ class _GestionarLocalState extends State<GestionarLocal> {
           Expanded(
             flex: 5,
             child: Container(
-              margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+              margin: EdgeInsets.fromLTRB(5.0, 0.0, 5.0, 50.0),
               decoration: BoxDecoration(
                   color: Colors.brown[100],
                   // Red border with the width is equal to 5
                   border: Border.all(width: 5, color: Colors.indigo)),
               child: Consumer<AppState>(
-                builder: (context, appState, _) => ListView(
-                  padding: EdgeInsets.zero,
+                builder: (context, appState, _) => Column(
                   children: [
-                    for (var data in appState.offersSelected)
-                      LocalOfertas(
-                        thumbnail: Container(),
-                        offer: data,
-                        functionLocalOffer: formLocalOffer,
-                      ),
+                    TabBar(
+                      indicatorColor: Colors.indigo,
+                      controller: _updateTabController,
+                      tabs: [
+                        Tab(icon: Icon(Icons.local_offer_rounded)),
+                        Tab(icon: Icon(Icons.supervised_user_circle_rounded)),
+                      ],
+                    ),
+                    Flexible(
+                      child: TabBarView(controller: _updateTabController, children: [
+                        ListView(
+                          padding: EdgeInsets.zero,
+                          children: [
+                            for (var data in appState.offersSelected)
+                              LocalOfertas(
+                                thumbnail: Container(),
+                                offer: data,
+                                functionLocalOffer: formLocalOffer,
+                              ),
+                          ],
+                        ),
+                        ListView(
+                          padding: EdgeInsets.zero,
+                          children: [
+                            for (var data in appState.offersUserSelected)
+                              LocalUserOfertas(
+                                thumbnail: Container(),
+                                offer: data,
+                              ),
+                          ],
+                        ),
+                      ]),
+                    ),
                   ],
                 ),
               ),
@@ -329,6 +365,76 @@ class _GestionarLocalState extends State<GestionarLocal> {
       drawer: NavDrawer(
         username: 'Nombre de usuario',
         email: 'Correo',
+      ),
+    );
+  }
+}
+
+class LocalUserOfertas extends StatelessWidget {
+  const LocalUserOfertas({
+    Key? key,
+    required this.thumbnail,
+    required this.offer,
+  }) : super(key: key);
+
+  final Widget thumbnail;
+  final Offer offer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Container(
+        color: Colors.brown[100],
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Container(
+                decoration: const BoxDecoration(color: Colors.brown),
+                child: Icon(Icons.emoji_food_beverage_rounded),
+                height: 80.0,
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: _OfertasDatos(
+                name: offer.name,
+                price: "\$" + offer.price.toString(),
+                location: offer.category,
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                      child: Consumer<AppState>(
+                        builder: (context, appState, _) => IconButton(
+                            onPressed: () {
+                              Provider.of<AppState>(context, listen: false)
+                                  .addUserOffer(offer);
+                            },
+                            icon: Icon(
+                              Icons.add_circle_outline,
+                              color: Colors.brown[50],
+                            )),
+                      )),
+                  Flexible(
+                      child: IconButton(
+                          onPressed: () {
+                            Provider.of<AppState>(context, listen: false)
+                                .removeUserOffer(offer);
+                          },
+                          icon: Icon(Icons.remove_circle_outline),
+                          color: Colors.brown[50])),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -368,7 +474,7 @@ class LocalOfertas extends StatelessWidget {
               child: _OfertasDatos(
                 name: offer.name,
                 price: "\$" + offer.price.toString(),
-                location: "null",
+                location: offer.category,
               ),
             ),
             Expanded(
@@ -378,21 +484,19 @@ class LocalOfertas extends StatelessWidget {
                 children: [
                   Flexible(
                       child: Consumer<AppState>(
-                        builder: (context, appState, _) => IconButton(
-                            onPressed: () {
-                              functionLocalOffer(
-                                  context,
-                                  Provider.of<AppState>(context, listen: false)
-                                      .updateLocalOffer,
-                                  offer);
-                            },
-                            icon: Icon(
-                              Icons.edit,
-                              color: (appState.favoritesId.contains(offer.id))
-                                  ? Colors.redAccent
-                                  : Colors.brown[50],
-                            )),
-                      )),
+                    builder: (context, appState, _) => IconButton(
+                        onPressed: () {
+                          functionLocalOffer(
+                              context,
+                              Provider.of<AppState>(context, listen: false)
+                                  .updateLocalOffer,
+                              offer);
+                        },
+                        icon: Icon(
+                          Icons.edit,
+                          color: Colors.brown[50],
+                        )),
+                  )),
                   Flexible(
                       child: IconButton(
                           onPressed: () {

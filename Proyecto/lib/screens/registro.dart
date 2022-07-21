@@ -101,17 +101,18 @@ class _RegisterState extends State<Register> {
                 child: TextButton(
                   onPressed: () async {
                     if (_inputName.text != "" && _inputEmail.text != "" && _inputPassword.text != "" && _inputConfirmpassword.text != "") {
-                      //if (_inputPassword == _inputConfirmpassword) {
+                      if (_inputPassword.text == _inputConfirmpassword.text) {
                         if (await Provider.of<AppState>(context, listen: false)
                             .registerAccount(_inputEmail.text, _inputName.text, _inputPassword.text, (e) { })) {
+                          Navigator.pop(context);
                           Navigator.pop(context);
                           msg("¡El usuario ha sido registrado exitosamente!, Ya puedes iniciar sesión");
                         } else {
                           msg("Ha ocurrido un error al registrar el usuario");
                         }
-                      /*} else {
+                      } else {
                         msg("Las contraseñas no coinciden");
-                      }*/
+                      }
                     }
                     else{
                       msg("Se deben completar todos los campos");

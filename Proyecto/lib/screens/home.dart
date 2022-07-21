@@ -67,8 +67,7 @@ class _HomeState extends State<Home> {
     _keyDataOverlay.currentState!.hide();
   }
 
-  void _userMarker(AppState appState, LatLng point)
-  {
+  void _userMarker(AppState appState, LatLng point) {
     appState.location = point;
     appState.userMarker(Marker(
       markerId: const MarkerId("user"),
@@ -78,8 +77,7 @@ class _HomeState extends State<Home> {
         onTap: () {},
       ),
       onTap: () {},
-      icon: BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueBlue),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
     ));
     mapController.animateCamera(CameraUpdate.newLatLngZoom(point, 14.0));
     print(appState.markers.toString());
@@ -100,12 +98,13 @@ class _HomeState extends State<Home> {
                 icon: const Icon(Icons.location_on_outlined),
                 tooltip: 'Añadir local',
                 onPressed: () async {
-                  setState(()
-                  {
+                  setState(() {
                     _canAddLocal = !_canAddLocal;
                   });
-                  await Provider.of<AppState>(context, listen: false).getLocation();
-                  _userMarker(Provider.of<AppState>(context, listen: false), Provider.of<AppState>(context, listen: false).location);
+                  await Provider.of<AppState>(context, listen: false)
+                      .getLocation();
+                  _userMarker(Provider.of<AppState>(context, listen: false),
+                      Provider.of<AppState>(context, listen: false).location);
                 },
               ),
             ),
@@ -159,13 +158,6 @@ class _HomeState extends State<Home> {
         username: 'Nombre de usuario',
         email: 'Correo',
       ),
-      /*floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        backgroundColor: Colors.indigo[500],
-        onPressed: () {
-          Navigator.pushNamed(context, '/agregar_oferta');
-        },
-      ),*/
     );
   }
 }
@@ -220,7 +212,6 @@ class _DataOverlayState extends State<DataOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    Local? _local = Provider.of<AppState>(context, listen: false).local;
     return Visibility(
       visible: _visibleState,
       child: Positioned(
@@ -265,38 +256,102 @@ class _DataOverlayState extends State<DataOverlay> {
                     children: [
                       Expanded(
                         flex: 5,
-                        child: Text(
-                          (_local?.name == null) ? "" : _local?.name as String,
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.brown[50],
+                        child: Consumer<AppState>(
+                          builder: (context, appState, _) => Text(
+                            (appState.local?.name == null)
+                                ? ""
+                                : appState.local?.name as String,
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.brown[50],
+                            ),
                           ),
                         ),
                       ),
                       Expanded(
                         flex: 1,
-                        child: PopupMenuButton<int>(
-                            onSelected: (value){
-                              if( value == 1) Navigator.pushNamed(context, "/agregar_oferta");
-                            },
-                            itemBuilder: (context) => [
-                              // popupmenu item 1
-                              PopupMenuItem(
-                                value: 1,
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.add_circle_outline_rounded,color: Colors.indigo[500],),
-                                    SizedBox(
-                                      // sized box with width 10
-                                      width: 5,
-                                    ),
-                                    Text("Agregar oferta")
-                                  ],
-                                ),
-                              ),
-                            ]),
+                        child:
+                            Consumer<AppState>(builder: (context, appState, _) {
+                          if (appState.userLocal?.id == appState.local?.id) {
+                            return PopupMenuButton<int>(
+                                onSelected: (value) {
+                                  if (value == 1) {
+                                    appState.hideData();
+                                    appState.setLocal(appState.userLocal as Local);
+                                    appState.getOffersOf((appState.userLocal as Local).id);
+                                    appState.getUserOffersOf();
+                                    Navigator.pushNamed(
+                                        context, "/gestionar_local");
+                                    }
+                                },
+                                itemBuilder: (context) => [
+                                      // popupmenu item 1
+                                      PopupMenuItem(
+                                        value: 1,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.add_circle_outline_rounded,
+                                              color: Colors.indigo[500],
+                                            ),
+                                            SizedBox(
+                                              // sized box with width 10
+                                              width: 5,
+                                            ),
+                                            Text("Gestionar local")
+                                          ],
+                                        ),
+                                      ),
+                                    ]);
+                          } else {
+                            return PopupMenuButton<int>(
+                                onSelected: (value) {
+                                  if (value == 1)
+                                    Navigator.pushNamed(
+                                        context, "/agregar_oferta");
+                                  else if (value == 2)
+                                    Navigator.pushNamed(
+                                        context, "/ofertas_local");
+                                },
+                                itemBuilder: (context) => [
+                                      // popupmenu item 1
+                                      PopupMenuItem(
+                                        value: 1,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.add_circle_outline_rounded,
+                                              color: Colors.indigo[500],
+                                            ),
+                                            SizedBox(
+                                              // sized box with width 10
+                                              width: 5,
+                                            ),
+                                            Text("Solicitar oferta")
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 2,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.add_circle_outline_rounded,
+                                              color: Colors.indigo[500],
+                                            ),
+                                            SizedBox(
+                                              // sized box with width 10
+                                              width: 5,
+                                            ),
+                                            Text("Ver la tienda")
+                                          ],
+                                        ),
+                                      ),
+                                    ]);
+                          }
+                        }),
                       )
                     ],
                   ),
@@ -309,7 +364,8 @@ class _DataOverlayState extends State<DataOverlay> {
               height: 100.0,
               width: 100.0,
               decoration: BoxDecoration(
-                image: DecorationImage(fit: BoxFit.fill, image: AssetImage('assets/ofertas.png')),
+                image: DecorationImage(
+                    fit: BoxFit.fill, image: AssetImage('assets/ofertas.png')),
                 color: Colors.brown[100],
                 border: Border.all(width: 2.0, color: Colors.indigo),
                 borderRadius: BorderRadius.circular(100),
